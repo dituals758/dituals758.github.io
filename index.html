@@ -3,10 +3,581 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dituals758.github.io</title>
+    
+    <meta name="application-name" content="WeekFlow">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WeekFlow">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    
+    <link rel="icon" href="./icon-32x32.png" type="image/png">
+    <link rel="apple-touch-icon" href="./icon-192x192.png">
+
+    <link rel="manifest" href="./manifest.json">
+    
+    <title>WeekFlow — OLED часы с русской неделей</title>
+    <meta name="description" content="Минималистичные OLED часы. Неделя начинается с понедельника. Точное время с секундами. Установите как PWA приложение.">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --gray: rgba(255, 255, 255, 0.05);
+            --mon: #1e40af;    /* понедельник - глубокий синий */
+            --tue: #3b82f6;    /* вторник - синий */
+            --wed: #8b5cf6;    /* среда - фиолетовый */
+            --thu: #ec4899;    /* четверг - розовый */
+            --fri: #f59e0b;    /* пятница - янтарный */
+            --sat: #10b981;    /* суббота - изумрудный */
+            --sun: #ef4444;    /* воскресенье - красный */
+        }
+        
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'SF Mono', 'Roboto Mono', 'Consolas', monospace;
+            font-weight: 300;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+ 
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            opacity: 1;
+        }
+        
+        .title {
+            font-size: 1.2rem;
+            font-weight: 400;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.4;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 0.8rem;
+            opacity: 0.3;
+            letter-spacing: 2px;
+        }
+        
+        /* Основные часы */
+        .clock {
+            text-align: center;
+        }
+        
+        .time-container {
+            position: relative;
+            margin-bottom: 40px;
+        }
+        
+        .time {
+            font-size: 6rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            transition: color 0.3s ease;
+        }
+        
+        .seconds {
+            font-size: 2.5rem;
+            font-weight: 200;
+            opacity: 0.5;
+            margin-left: 4px;
+            font-variant-numeric: tabular-nums;
+            vertical-align: top;
+            transition: color 0.3s ease;
+        }
+        
+        .separator {
+            opacity: 0.3;
+            font-weight: 100;
+        }
+        
+        .date {
+            font-size: 1rem;
+            opacity: 0.6;
+            font-weight: 300;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+
+        .week-indicator {
+            width: 100%;
+            max-width: 400px;
+            margin: 50px auto;
+        }
+        
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .week-day {
+            height: 4px;
+            background: var(--gray);
+            transition: all 0.3s ease;
+            border-radius: 1px;
+        }
+        
+        .week-day.active {
+            transform: scaleY(1.5);
+        }
+        
+        .week-labels {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            text-align: center;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.4;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 30px;
+            height: 20px;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.7rem;
+            opacity: 0.3;
+        }
+        
+        .footer a {
+            color: inherit;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .footer a:hover {
+            opacity: 0.7;
+        }
+
+        .install-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+        
+        .install-button.show {
+            opacity: 1;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .install-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .time {
+                font-size: 4rem;
+            }
+            
+            .seconds {
+                font-size: 1.8rem;
+            }
+            
+            .header {
+                margin-bottom: 40px;
+            }
+            
+            .week-indicator {
+                max-width: 350px;
+            }
+            
+            .install-button {
+                top: 10px;
+                right: 10px;
+                font-size: 0.6rem;
+                padding: 6px 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .time {
+                font-size: 3rem;
+            }
+            
+            .seconds {
+                font-size: 1.4rem;
+            }
+            
+            .date {
+                font-size: 0.9rem;
+            }
+            
+            body {
+                padding: 15px;
+                padding-top: 50px; /* Для кнопки установки */
+            }
+            
+            .header {
+                margin-bottom: 30px;
+            }
+            
+            .title {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .footer {
+                position: relative;
+                bottom: 0;
+                margin-top: 30px;
+            }
+        }
+ 
+        @media (display-mode: standalone) {
+            body {
+                padding-top: env(safe-area-inset-top, 20px);
+                padding-bottom: env(safe-area-inset-bottom, 20px);
+                padding-left: env(safe-area-inset-left, 20px);
+                padding-right: env(safe-area-inset-right, 20px);
+            }
+            
+            .install-button {
+                display: none;
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --black: #000000;
+                --white: #ffffff;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello world</h1>
-    <h2>dituals758.github.io</h2>
+    <button id="installButton" class="install-button" aria-label="Установить приложение">
+        ⬇ Установить
+    </button>
+    
+    <div class="container">
+        <div class="header">
+            <div class="title">WeekFlow</div>
+            <div class="subtitle">Минималистичные OLED часы. Каждый день имеет свой цвет. <br><br>Hello world! 😁 dituals758.github.io</div>
+        </div>
+        
+        <div class="clock">
+            <div class="time-container">
+                <div id="time" class="time" aria-live="polite"></div>
+            </div>
+            <div id="date" class="date" aria-live="polite"></div>
+        </div>
+        
+        <div class="week-indicator">
+            <div id="week-grid" class="week-grid"></div>
+            <div class="week-labels">
+                <div>ПН</div>
+                <div>ВТ</div>
+                <div>СР</div>
+                <div>ЧТ</div>
+                <div>ПТ</div>
+                <div>СБ</div>
+                <div>ВС</div>
+            </div>
+        </div>
+        
+        <div id="status" class="status"></div>
+    </div>
+    
+    <div class="footer">
+        WeekFlow &copy; <a href="https://github.com/dituals758/dituals758.github.io/" target="_blank" rel="noopener">dituals758</a>
+    </div>
+
+    <script>
+        (() => {
+            'use strict';
+            
+            const timeEl = document.getElementById('time');
+            const dateEl = document.getElementById('date');
+            const weekGridEl = document.getElementById('week-grid');
+            const statusEl = document.getElementById('status');
+            const installButton = document.getElementById('installButton');
+            const DAYS_RU = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+            const DAYS_FULL_RU = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье'];
+            const MONTHS_RU = [
+                'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+            ];
+
+            const DAY_COLORS = [
+                '#1e40af',  // понедельник - глубокий синий
+                '#3b82f6',  // вторник - синий
+                '#8b5cf6',  // среда - фиолетовый
+                '#ec4899',  // четверг - розовый
+                '#f59e0b',  // пятница - янтарный
+                '#10b981',  // суббота - изумрудный
+                '#ef4444'   // воскресенье - красный
+            ];
+
+            let deferredPrompt;
+            
+            const formatNum = (num) => num < 10 ? `0${num}` : `${num}`;
+
+            const getRussianDay = (date) => {
+                const day = date.getDay();
+                return day === 0 ? 6 : day - 1;
+            };
+
+            const getDayColor = (russianDay) => DAY_COLORS[russianDay];
+
+            const updateTime = () => {
+                const now = new Date();
+                const hours = formatNum(now.getHours());
+                const minutes = formatNum(now.getMinutes());
+                const seconds = formatNum(now.getSeconds());
+                
+                timeEl.innerHTML = `
+                    ${hours}<span class="separator">:</span>${minutes}
+                    <span class="seconds">${seconds}</span>
+                `;
+            };
+
+            const updateDate = () => {
+                const now = new Date();
+                const day = now.getDate();
+                const month = MONTHS_RU[now.getMonth()];
+                const year = now.getFullYear();
+                const russianDay = getRussianDay(now);
+                
+                dateEl.textContent = `${DAYS_FULL_RU[russianDay]}, ${day} ${month} ${year}`;
+
+                const dayColor = getDayColor(russianDay);
+                timeEl.style.color = dayColor;
+                dateEl.style.color = dayColor;
+            };
+
+            const createWeekGrid = () => {
+                weekGridEl.innerHTML = '';
+                for (let i = 0; i < 7; i++) {
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'week-day';
+                    dayEl.style.background = DAY_COLORS[i];
+                    weekGridEl.appendChild(dayEl);
+                }
+            };
+
+            const updateWeekIndicator = () => {
+                const now = new Date();
+                const russianDay = getRussianDay(now);
+                const hour = now.getHours();
+
+                const dayElements = weekGridEl.querySelectorAll('.week-day');
+                dayElements.forEach((el, index) => {
+                    el.classList.remove('active');
+                    el.style.opacity = index === russianDay ? '1' : '0.3';
+                });
+
+                if (dayElements[russianDay]) {
+                    dayElements[russianDay].classList.add('active');
+                }
+
+                const dayProgress = (hour / 24) * 100;
+                return dayProgress;
+            };
+
+            const updateStatus = () => {
+                const now = new Date();
+                const russianDay = getRussianDay(now);
+                const hour = now.getHours();
+                
+                let status = '';
+                
+                if (russianDay >= 5) { 
+                    status = 'ВЫХОДНОЙ';
+                    statusEl.classList.add('pulse');
+                } else {
+                    statusEl.classList.remove('pulse');
+                    
+                    if (hour < 6) {
+                        status = 'НОЧЬ';
+                    } else if (hour < 12) {
+                        status = 'УТРО';
+                    } else if (hour < 18) {
+                        status = 'ДЕНЬ';
+                    } else {
+                        status = 'ВЕЧЕР';
+                    }
+                }
+                
+                statusEl.textContent = status;
+            };
+
+            const animateSeconds = () => {
+                const secondsElement = document.querySelector('.seconds');
+                if (secondsElement) {
+                    const now = new Date();
+                    const seconds = now.getSeconds();
+ 
+                    secondsElement.style.opacity = seconds % 2 === 0 ? '0.7' : '0.4';
+
+                    const russianDay = getRussianDay(now);
+                    const hour = now.getHours();
+                    const minute = now.getMinutes();
+
+                    const intensity = 0.3 + (Math.sin(Date.now() / 1000) * 0.1 + 0.6);
+                    document.documentElement.style.setProperty('--gray', `rgba(255, 255, 255, ${0.05 * intensity})`);
+                }
+            };
+
+            const initPWA = () => {
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+
+                    installButton.classList.add('show');
+и
+                    installButton.addEventListener('click', async () => {
+                        if (!deferredPrompt) return;
+                        
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        
+                        if (outcome === 'accepted') {
+                            console.log('Пользователь установил приложение');
+                        }
+                        
+                        deferredPrompt = null;
+                        installButton.classList.remove('show');
+                    });
+                });
+
+                window.addEventListener('appinstalled', () => {
+                    console.log('Приложение установлено');
+                    installButton.classList.remove('show');
+                    deferredPrompt = null;
+                });
+
+                if (window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone === true) {
+                    installButton.style.display = 'none';
+                }
+            };
+
+            const updateAll = () => {
+                updateTime();
+                updateDate();
+                updateWeekIndicator();
+                updateStatus();
+                animateSeconds();
+            };
+
+            const init = () => {
+                createWeekGrid();
+                updateAll();
+                initPWA();
+
+                setInterval(updateAll, 1000);
+
+                setTimeout(() => {
+                    document.body.style.transition = 'opacity 0.8s ease';
+                    document.body.style.opacity = '1';
+                }, 100);
+                
+                document.body.style.opacity = '0';
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            if ('wakeLock' in navigator && window.location.protocol === 'https:') {
+                let wakeLock = null;
+                
+                const requestWakeLock = async () => {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                    } catch (err) {
+                    }
+                };
+                
+                requestWakeLock();
+                
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible') {
+                        requestWakeLock();
+                    }
+                });
+            }
+
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js').catch(err => {
+                        console.log('Service Worker registration failed:', err);
+                    });
+                });
+            }
+            
+        })();
+    </script>
 </body>
 </html>

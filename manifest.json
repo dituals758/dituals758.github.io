@@ -1,0 +1,43 @@
+{
+  "name": "WeekFlow — OLED часы",
+  "short_name": "WeekFlow",
+  "description": "Минималистичные OLED часы с градиентом дней недели. Неделя начинается с понедельника.",
+  "start_url": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay"],
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {
+      "src": "./icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+weekflow",
+      "url": "/?time=%s"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
