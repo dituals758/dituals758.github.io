@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- PWA Meta Tags -->
     <meta name="application-name" content="WeekFlow">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,336 +12,305 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#000000">
     
+    <!-- SEO Meta Tags -->
+    <title>WeekFlow — OLED Неоновые Часы</title>
+    <meta name="description" content="Минималистичные OLED часы с неоновыми цветами для каждого дня недели. Установите как PWA приложение на рабочий стол.">
+    <meta name="keywords" content="часы, таймер, время, OLED, неон, дни недели, PWA, прогрессивное веб-приложение">
+    <meta name="author" content="dituals758">
+    
+    <!-- Icons -->
     <link rel="icon" href="./icon-32x32.png" type="image/png">
     <link rel="apple-touch-icon" href="./icon-192x192.png">
-
+    
+    <!-- Manifest -->
     <link rel="manifest" href="./manifest.json">
     
-    <title>WeekFlow — OLED часы с русской неделей</title>
-    <meta name="description" content="Минималистичные OLED часы. Неделя начинается с понедельника. Точное время с секундами. Установите как PWA приложение.">
-    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        /* Reset & Base */
         :root {
             --black: #000000;
             --white: #ffffff;
-            --gray: rgba(255, 255, 255, 0.05);
-            --mon: #1e40af;    /* понедельник - глубокий синий */
-            --tue: #3b82f6;    /* вторник - синий */
-            --wed: #8b5cf6;    /* среда - фиолетовый */
-            --thu: #ec4899;    /* четверг - розовый */
-            --fri: #f59e0b;    /* пятница - янтарный */
-            --sat: #10b981;    /* суббота - изумрудный */
-            --sun: #ef4444;    /* воскресенье - красный */
+            --mon: #0066ff;    --tue: #00ccff;    --wed: #aa00ff;
+            --thu: #ff00aa;    --fri: #ffaa00;    --sat: #00ffaa;    --sun: #ff3300;
         }
         
-        body {
-            background: var(--black);
-            color: var(--white);
-            font-family: 'SF Mono', 'Roboto Mono', 'Consolas', monospace;
-            font-weight: 300;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            padding: 20px;
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
+            -webkit-touch-callout: none; -webkit-user-select: none;
             user-select: none;
         }
         
-        .container {
-            width: 100%;
-            max-width: 800px;
+        body {
+            background: var(--black); color: var(--white);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            overflow: hidden; padding: 20px;
         }
- 
+        
+        /* Layout */
+        .container {
+            width: 100%; max-width: 1200px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        
+        /* Header */
         .header {
-            text-align: center;
-            margin-bottom: 60px;
-            opacity: 1;
+            text-align: center; margin-bottom: 40px;
         }
         
         .title {
-            font-size: 1.2rem;
-            font-weight: 400;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            opacity: 0.4;
-            margin-bottom: 10px;
+            font-size: 1.8rem; font-weight: 800; letter-spacing: 4px;
+            text-transform: uppercase; opacity: 0.6; margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
         
         .subtitle {
-            font-size: 0.8rem;
-            opacity: 0.3;
-            letter-spacing: 2px;
+            font-size: 1rem; opacity: 0.4; letter-spacing: 2px;
         }
         
-        /* Основные часы */
-        .clock {
-            text-align: center;
-        }
-        
-        .time-container {
+        /* Clock Container */
+        .clock-container {
             position: relative;
-            margin-bottom: 40px;
+            width: 500px; height: 500px;
+            margin: 40px auto;
         }
         
-        .time {
-            font-size: 6rem;
-            font-weight: 200;
-            letter-spacing: -2px;
-            font-variant-numeric: tabular-nums;
-            line-height: 1;
-            transition: color 0.3s ease;
+        /* Week Segments */
+        .week-segments {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; overflow: hidden;
         }
         
-        .seconds {
-            font-size: 2.5rem;
-            font-weight: 200;
-            opacity: 0.5;
-            margin-left: 4px;
-            font-variant-numeric: tabular-nums;
-            vertical-align: top;
-            transition: color 0.3s ease;
+        .week-segment {
+            position: absolute; width: 50%; height: 50%;
+            transform-origin: 100% 100%; clip-path: polygon(0 0, 100% 0, 100% 100%);
+            opacity: 0.08; transition: opacity 0.5s ease;
         }
         
-        .separator {
-            opacity: 0.3;
-            font-weight: 100;
+        .week-segment:nth-child(1) { transform: rotate(0deg); background: var(--mon); }
+        .week-segment:nth-child(2) { transform: rotate(51.42857deg); background: var(--tue); }
+        .week-segment:nth-child(3) { transform: rotate(102.85714deg); background: var(--wed); }
+        .week-segment:nth-child(4) { transform: rotate(154.28571deg); background: var(--thu); }
+        .week-segment:nth-child(5) { transform: rotate(205.71428deg); background: var(--fri); }
+        .week-segment:nth-child(6) { transform: rotate(257.14285deg); background: var(--sat); }
+        .week-segment:nth-child(7) { transform: rotate(308.57142deg); background: var(--sun); }
+        
+        .week-segment.active {
+            opacity: 0.3; filter: brightness(1.5);
+        }
+        
+        /* Clock Face */
+        .clock-face {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 380px; height: 380px; border-radius: 50%;
+            background: rgba(0, 0, 0, 0.95);
+            box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9),
+                        0 0 80px rgba(0, 0, 0, 0.8),
+                        0 0 0 1px rgba(255, 255, 255, 0.03);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        
+        /* Time Display */
+        .time-container {
+            text-align: center; margin-bottom: 15px;
+        }
+        
+        .time-row {
+            display: flex; align-items: center;
+            justify-content: center; gap: 5px;
+        }
+        
+        .time-part {
+            font-size: 4.2rem; font-weight: 250;
+            font-variant-numeric: tabular-nums; min-width: 78px;
+            text-align: center; transition: all 0.5s ease;
+            text-shadow: 0 0 20px currentColor;
+        }
+        
+        .seconds { opacity: 0.95; }
+        
+        .colon {
+            font-size: 4.2rem; font-weight: 100; opacity: 0.6;
+            margin: 0 -5px; transition: all 0.5s ease;
+            position: relative; top: -2px;
+        }
+        
+        /* Date Display */
+        .date-container {
+            text-align: center; margin-top: 15px;
+        }
+        
+        .day-name {
+            font-size: 2.2rem; font-weight: 500;
+            letter-spacing: 2px; text-transform: uppercase;
+            transition: all 0.5s ease;
+            text-shadow: 0 0 20px currentColor;
+            margin-bottom: 5px;
         }
         
         .date {
-            font-size: 1rem;
-            opacity: 0.6;
-            font-weight: 300;
-            letter-spacing: 1px;
-            transition: color 0.3s ease;
-        }
-
-        .week-indicator {
-            width: 100%;
-            max-width: 400px;
-            margin: 50px auto;
+            font-size: 1.8rem; font-weight: 300;
+            letter-spacing: 1px; transition: all 0.5s ease;
+            text-shadow: 0 0 15px currentColor;
         }
         
-        .week-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            margin-bottom: 10px;
+        /* Day Labels */
+        .day-labels {
+            position: absolute; width: 100%;
+            height: 100%; border-radius: 50%;
         }
         
-        .week-day {
-            height: 4px;
-            background: var(--gray);
-            transition: all 0.3s ease;
-            border-radius: 1px;
+        .day-label {
+            position: absolute; font-size: 1.3rem;
+            font-weight: 700; text-transform: uppercase;
+            letter-spacing: 2px; opacity: 0.4;
+            transition: all 0.5s ease;
+            text-shadow: 0 0 15px currentColor;
+            transform: translate(-50%, -50%);
         }
         
-        .week-day.active {
-            transform: scaleY(1.5);
+        .day-label.active {
+            opacity: 1; font-size: 1.6rem;
+            text-shadow: 0 0 25px currentColor, 0 0 40px currentColor;
         }
         
-        .week-labels {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            font-size: 0.7rem;
-            opacity: 0.4;
-            text-align: center;
-        }
-
+        /* Status */
         .status {
-            text-align: center;
-            font-size: 0.8rem;
-            opacity: 0.4;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: 30px;
-            height: 20px;
+            text-align: center; font-size: 1.1rem;
+            opacity: 0.5; letter-spacing: 3px;
+            text-transform: uppercase; margin-top: 40px;
+            height: 30px; font-weight: 600;
+            transition: all 0.5s ease;
         }
-
+        
+        /* Footer */
         .footer {
-            position: fixed;
-            bottom: 20px;
-            width: 100%;
-            text-align: center;
-            font-size: 0.7rem;
-            opacity: 0.3;
+            position: fixed; bottom: 20px; width: 100%;
+            text-align: center; font-size: 0.8rem; opacity: 0.3;
         }
         
         .footer a {
-            color: inherit;
-            text-decoration: none;
+            color: inherit; text-decoration: none;
             transition: opacity 0.3s ease;
         }
         
-        .footer a:hover {
-            opacity: 0.7;
-        }
-
+        .footer a:hover { opacity: 0.7; }
+        
+        /* Install Button */
         .install-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
+            position: fixed; top: 20px; right: 20px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            opacity: 0;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            z-index: 1000;
+            color: white; padding: 12px 20px; border-radius: 25px;
+            font-size: 0.9rem; font-weight: 500; cursor: pointer;
+            opacity: 0; transition: all 0.3s ease;
+            backdrop-filter: blur(20px); z-index: 1000;
         }
         
         .install-button.show {
-            opacity: 1;
-            animation: slideIn 0.3s ease;
+            opacity: 1; animation: slideIn 0.3s ease;
         }
         
         .install-button:hover {
             background: rgba(255, 255, 255, 0.15);
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
+            transform: translateY(-1px);
         }
         
+        /* Animations */
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .pulse {
-            animation: pulse 2s infinite;
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.9; }
         }
-
+        
+        .colon.blink { animation: blink 1s infinite; }
+        
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .time {
-                font-size: 4rem;
-            }
-            
-            .seconds {
-                font-size: 1.8rem;
-            }
-            
-            .header {
-                margin-bottom: 40px;
-            }
-            
-            .week-indicator {
-                max-width: 350px;
-            }
-            
-            .install-button {
-                top: 10px;
-                right: 10px;
-                font-size: 0.6rem;
-                padding: 6px 12px;
-            }
+            .clock-container { width: 400px; height: 400px; }
+            .clock-face { width: 300px; height: 300px; }
+            .time-part { font-size: 3.2rem; min-width: 58px; }
+            .colon { font-size: 3.2rem; }
+            .day-name { font-size: 1.8rem; }
+            .date { font-size: 1.5rem; }
+            .day-label { font-size: 1rem; }
+            .day-label.active { font-size: 1.2rem; }
+            .status { font-size: 0.9rem; }
         }
         
         @media (max-width: 480px) {
-            .time {
-                font-size: 3rem;
-            }
-            
-            .seconds {
-                font-size: 1.4rem;
-            }
-            
-            .date {
-                font-size: 0.9rem;
-            }
-            
-            body {
-                padding: 15px;
-                padding-top: 50px; /* Для кнопки установки */
-            }
-            
-            .header {
-                margin-bottom: 30px;
-            }
-            
-            .title {
-                font-size: 1rem;
+            .clock-container { width: 320px; height: 320px; }
+            .clock-face { width: 240px; height: 240px; }
+            .time-part { font-size: 2.4rem; min-width: 44px; }
+            .colon { font-size: 2.4rem; }
+            .day-name { font-size: 1.4rem; }
+            .date { font-size: 1.2rem; }
+            .day-label { font-size: 0.8rem; }
+            .day-label.active { font-size: 1rem; }
+            .title { font-size: 1.3rem; }
+            .install-button {
+                top: 10px; right: 10px;
+                font-size: 0.7rem; padding: 8px 14px;
             }
         }
         
-        @media (max-height: 600px) {
-            .footer {
-                position: relative;
-                bottom: 0;
-                margin-top: 30px;
-            }
-        }
- 
         @media (display-mode: standalone) {
             body {
-                padding-top: env(safe-area-inset-top, 20px);
-                padding-bottom: env(safe-area-inset-bottom, 20px);
-                padding-left: env(safe-area-inset-left, 20px);
-                padding-right: env(safe-area-inset-right, 20px);
+                padding: env(safe-area-inset-top, 20px) 
+                         env(safe-area-inset-right, 20px) 
+                         env(safe-area-inset-bottom, 20px) 
+                         env(safe-area-inset-left, 20px);
             }
-            
-            .install-button {
-                display: none;
-            }
-        }
-
-        @media (prefers-color-scheme: light) {
-            :root {
-                --black: #000000;
-                --white: #ffffff;
-            }
+            .install-button { display: none; }
         }
     </style>
 </head>
 <body>
     <button id="installButton" class="install-button" aria-label="Установить приложение">
-        ⬇ Установить
+        ⬇ Установить PWA
     </button>
     
     <div class="container">
         <div class="header">
             <div class="title">WeekFlow</div>
-            <div class="subtitle">Минималистичные OLED часы. Каждый день имеет свой цвет. <br><br>Hello world! 😁 dituals758.github.io</div>
+            <div class="subtitle">OLED Неоновые Часы • Каждый день — свой цвет</div>
         </div>
         
-        <div class="clock">
-            <div class="time-container">
-                <div id="time" class="time" aria-live="polite"></div>
+        <div class="clock-container">
+            <!-- Week Segments -->
+            <div id="weekSegments" class="week-segments">
+                <div class="week-segment"></div><div class="week-segment"></div>
+                <div class="week-segment"></div><div class="week-segment"></div>
+                <div class="week-segment"></div><div class="week-segment"></div>
+                <div class="week-segment"></div>
             </div>
-            <div id="date" class="date" aria-live="polite"></div>
-        </div>
-        
-        <div class="week-indicator">
-            <div id="week-grid" class="week-grid"></div>
-            <div class="week-labels">
-                <div>ПН</div>
-                <div>ВТ</div>
-                <div>СР</div>
-                <div>ЧТ</div>
-                <div>ПТ</div>
-                <div>СБ</div>
-                <div>ВС</div>
+            
+            <!-- Day Labels -->
+            <div id="dayLabels" class="day-labels"></div>
+            
+            <!-- Clock Face -->
+            <div class="clock-face">
+                <div class="time-container">
+                    <div class="time-row">
+                        <div id="hours" class="time-part"></div>
+                        <span class="colon blink">:</span>
+                        <div id="minutes" class="time-part"></div>
+                        <span class="colon blink">:</span>
+                        <div id="seconds" class="time-part seconds"></div>
+                    </div>
+                </div>
+                
+                <div class="date-container">
+                    <div id="dayName" class="day-name"></div>
+                    <div id="date" class="date"></div>
+                </div>
             </div>
         </div>
         
@@ -348,233 +318,260 @@
     </div>
     
     <div class="footer">
-        WeekFlow &copy; <a href="https://github.com/dituals758/dituals758.github.io/" target="_blank" rel="noopener">dituals758</a>
+        WeekFlow © <a href="https://github.com/dituals758/dituals758.github.io" target="_blank" rel="noopener">dituals758</a>
     </div>
 
     <script>
-        (() => {
+        (function() {
             'use strict';
             
-            const timeEl = document.getElementById('time');
-            const dateEl = document.getElementById('date');
-            const weekGridEl = document.getElementById('week-grid');
-            const statusEl = document.getElementById('status');
-            const installButton = document.getElementById('installButton');
-            const DAYS_RU = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
-            const DAYS_FULL_RU = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье'];
-            const MONTHS_RU = [
-                'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-                'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-            ];
-
-            const DAY_COLORS = [
-                '#1e40af',  // понедельник - глубокий синий
-                '#3b82f6',  // вторник - синий
-                '#8b5cf6',  // среда - фиолетовый
-                '#ec4899',  // четверг - розовый
-                '#f59e0b',  // пятница - янтарный
-                '#10b981',  // суббота - изумрудный
-                '#ef4444'   // воскресенье - красный
-            ];
-
-            let deferredPrompt;
+            // Конфигурация
+            const CONFIG = {
+                DAY_COLORS: [
+                    '#0066ff', '#00ccff', '#aa00ff',
+                    '#ff00aa', '#ffaa00', '#00ffaa', '#ff3300'
+                ],
+                DAYS_RU: [
+                    'ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА',
+                    'ЧЕТВЕРГ', 'ПЯТНИЦА', 'СУББОТА', 'ВОСКРЕСЕНЬЕ'
+                ],
+                DAYS_SHORT_RU: ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'],
+                STATUS_TEXTS: {
+                    WEEKEND: 'ВЫХОДНОЙ',
+                    NIGHT: 'НОЧЬ',
+                    MORNING: 'УТРО',
+                    DAY: 'ДЕНЬ',
+                    EVENING: 'ВЕЧЕР'
+                }
+            };
             
-            const formatNum = (num) => num < 10 ? `0${num}` : `${num}`;
-
-            const getRussianDay = (date) => {
-                const day = date.getDay();
-                return day === 0 ? 6 : day - 1;
+            // Элементы DOM
+            const elements = {
+                hours: document.getElementById('hours'),
+                minutes: document.getElementById('minutes'),
+                seconds: document.getElementById('seconds'),
+                dayName: document.getElementById('dayName'),
+                date: document.getElementById('date'),
+                weekSegments: document.getElementById('weekSegments'),
+                dayLabels: document.getElementById('dayLabels'),
+                status: document.getElementById('status'),
+                installButton: document.getElementById('installButton'),
+                colons: document.querySelectorAll('.colon')
             };
-
-            const getDayColor = (russianDay) => DAY_COLORS[russianDay];
-
-            const updateTime = () => {
+            
+            let deferredPrompt = null;
+            
+            // Утилиты
+            const formatNumber = (num) => num < 10 ? `0${num}` : `${num}`;
+            const getRussianDay = (date) => date.getDay() === 0 ? 6 : date.getDay() - 1;
+            
+            // Обновление времени
+            function updateTime() {
                 const now = new Date();
-                const hours = formatNum(now.getHours());
-                const minutes = formatNum(now.getMinutes());
-                const seconds = formatNum(now.getSeconds());
+                const isEvenSecond = now.getSeconds() % 2 === 0;
                 
-                timeEl.innerHTML = `
-                    ${hours}<span class="separator">:</span>${minutes}
-                    <span class="seconds">${seconds}</span>
-                `;
-            };
-
-            const updateDate = () => {
-                const now = new Date();
-                const day = now.getDate();
-                const month = MONTHS_RU[now.getMonth()];
-                const year = now.getFullYear();
-                const russianDay = getRussianDay(now);
+                elements.hours.textContent = formatNumber(now.getHours());
+                elements.minutes.textContent = formatNumber(now.getMinutes());
+                elements.seconds.textContent = formatNumber(now.getSeconds());
                 
-                dateEl.textContent = `${DAYS_FULL_RU[russianDay]}, ${day} ${month} ${year}`;
-
-                const dayColor = getDayColor(russianDay);
-                timeEl.style.color = dayColor;
-                dateEl.style.color = dayColor;
-            };
-
-            const createWeekGrid = () => {
-                weekGridEl.innerHTML = '';
-                for (let i = 0; i < 7; i++) {
-                    const dayEl = document.createElement('div');
-                    dayEl.className = 'week-day';
-                    dayEl.style.background = DAY_COLORS[i];
-                    weekGridEl.appendChild(dayEl);
-                }
-            };
-
-            const updateWeekIndicator = () => {
-                const now = new Date();
-                const russianDay = getRussianDay(now);
-                const hour = now.getHours();
-
-                const dayElements = weekGridEl.querySelectorAll('.week-day');
-                dayElements.forEach((el, index) => {
-                    el.classList.remove('active');
-                    el.style.opacity = index === russianDay ? '1' : '0.3';
+                elements.colons.forEach(colon => {
+                    colon.style.opacity = isEvenSecond ? '0.3' : '0.8';
                 });
-
-                if (dayElements[russianDay]) {
-                    dayElements[russianDay].classList.add('active');
-                }
-
-                const dayProgress = (hour / 24) * 100;
-                return dayProgress;
-            };
-
-            const updateStatus = () => {
+            }
+            
+            // Обновление даты
+            function updateDate() {
+                const now = new Date();
+                const russianDay = getRussianDay(now);
+                const dayColor = CONFIG.DAY_COLORS[russianDay];
+                
+                // Обновление названия дня
+                elements.dayName.textContent = CONFIG.DAYS_RU[russianDay];
+                
+                // Обновление даты в формате дд.мм.гггг
+                const day = formatNumber(now.getDate());
+                const month = formatNumber(now.getMonth() + 1);
+                const year = now.getFullYear();
+                elements.date.textContent = `${day}.${month}.${year}`;
+                
+                // Установка цвета для всех связанных элементов
+                const coloredElements = [
+                    elements.hours, elements.minutes, elements.seconds,
+                    elements.dayName, elements.date, elements.status
+                ];
+                
+                coloredElements.forEach(el => el.style.color = dayColor);
+                elements.colons.forEach(colon => colon.style.color = dayColor);
+            }
+            
+            // Обновление сегментов недели
+            function updateWeekSegments() {
+                const russianDay = getRussianDay(new Date());
+                const segments = elements.weekSegments.querySelectorAll('.week-segment');
+                
+                segments.forEach((segment, index) => {
+                    segment.classList.toggle('active', index === russianDay);
+                });
+            }
+            
+            // Создание меток дней
+            function createDayLabels() {
+                const radius = 220;
+                const center = 250;
+                
+                CONFIG.DAYS_SHORT_RU.forEach((day, index) => {
+                    const angle = (index * (360 / 7) - 90) * Math.PI / 180;
+                    const x = center + radius * Math.cos(angle);
+                    const y = center + radius * Math.sin(angle);
+                    
+                    const label = document.createElement('div');
+                    label.className = 'day-label';
+                    label.textContent = day;
+                    label.style.left = `${x}px`;
+                    label.style.top = `${y}px`;
+                    label.style.color = CONFIG.DAY_COLORS[index];
+                    
+                    elements.dayLabels.appendChild(label);
+                });
+            }
+            
+            // Обновление меток дней
+            function updateDayLabels() {
+                const russianDay = getRussianDay(new Date());
+                const labels = elements.dayLabels.querySelectorAll('.day-label');
+                
+                labels.forEach((label, index) => {
+                    label.classList.toggle('active', index === russianDay);
+                });
+            }
+            
+            // Обновление статуса
+            function updateStatus() {
                 const now = new Date();
                 const russianDay = getRussianDay(now);
                 const hour = now.getHours();
                 
-                let status = '';
+                let statusText = '';
                 
-                if (russianDay >= 5) { 
-                    status = 'ВЫХОДНОЙ';
-                    statusEl.classList.add('pulse');
+                if (russianDay >= 5) {
+                    statusText = CONFIG.STATUS_TEXTS.WEEKEND;
+                    elements.status.classList.add('pulse');
                 } else {
-                    statusEl.classList.remove('pulse');
+                    elements.status.classList.remove('pulse');
                     
-                    if (hour < 6) {
-                        status = 'НОЧЬ';
-                    } else if (hour < 12) {
-                        status = 'УТРО';
-                    } else if (hour < 18) {
-                        status = 'ДЕНЬ';
-                    } else {
-                        status = 'ВЕЧЕР';
-                    }
+                    if (hour < 6) statusText = CONFIG.STATUS_TEXTS.NIGHT;
+                    else if (hour < 12) statusText = CONFIG.STATUS_TEXTS.MORNING;
+                    else if (hour < 18) statusText = CONFIG.STATUS_TEXTS.DAY;
+                    else statusText = CONFIG.STATUS_TEXTS.EVENING;
                 }
                 
-                statusEl.textContent = status;
-            };
-
-            const animateSeconds = () => {
-                const secondsElement = document.querySelector('.seconds');
-                if (secondsElement) {
-                    const now = new Date();
-                    const seconds = now.getSeconds();
- 
-                    secondsElement.style.opacity = seconds % 2 === 0 ? '0.7' : '0.4';
-
-                    const russianDay = getRussianDay(now);
-                    const hour = now.getHours();
-                    const minute = now.getMinutes();
-
-                    const intensity = 0.3 + (Math.sin(Date.now() / 1000) * 0.1 + 0.6);
-                    document.documentElement.style.setProperty('--gray', `rgba(255, 255, 255, ${0.05 * intensity})`);
-                }
-            };
-
-            const initPWA = () => {
+                elements.status.textContent = statusText;
+            }
+            
+            // PWA функционал
+            function initPWA() {
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     deferredPrompt = e;
-
-                    installButton.classList.add('show');
-и
-                    installButton.addEventListener('click', async () => {
+                    
+                    elements.installButton.classList.add('show');
+                    
+                    elements.installButton.addEventListener('click', async () => {
                         if (!deferredPrompt) return;
                         
                         deferredPrompt.prompt();
                         const { outcome } = await deferredPrompt.userChoice;
                         
                         if (outcome === 'accepted') {
-                            console.log('Пользователь установил приложение');
+                            console.log('Пользователь принял установку');
                         }
                         
                         deferredPrompt = null;
-                        installButton.classList.remove('show');
+                        elements.installButton.classList.remove('show');
                     });
                 });
-
+                
                 window.addEventListener('appinstalled', () => {
                     console.log('Приложение установлено');
-                    installButton.classList.remove('show');
+                    elements.installButton.classList.remove('show');
                     deferredPrompt = null;
                 });
-
+                
+                // Скрыть кнопку установки, если приложение уже установлено
                 if (window.matchMedia('(display-mode: standalone)').matches || 
                     window.navigator.standalone === true) {
-                    installButton.style.display = 'none';
+                    elements.installButton.style.display = 'none';
                 }
-            };
-
-            const updateAll = () => {
+            }
+            
+            // Wake Lock API
+            function initWakeLock() {
+                if ('wakeLock' in navigator && window.location.protocol === 'https:') {
+                    let wakeLock = null;
+                    
+                    const requestWakeLock = async () => {
+                        try {
+                            wakeLock = await navigator.wakeLock.request('screen');
+                        } catch (err) {
+                            console.warn('Wake Lock не поддерживается:', err);
+                        }
+                    };
+                    
+                    requestWakeLock();
+                    
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') {
+                            requestWakeLock();
+                        }
+                    });
+                }
+            }
+            
+            // Service Worker
+            function initServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('./sw.js').catch((error) => {
+                            console.warn('Service Worker регистрация не удалась:', error);
+                        });
+                    });
+                }
+            }
+            
+            // Основное обновление
+            function updateAll() {
                 updateTime();
                 updateDate();
-                updateWeekIndicator();
+                updateWeekSegments();
+                updateDayLabels();
                 updateStatus();
-                animateSeconds();
-            };
-
-            const init = () => {
-                createWeekGrid();
+            }
+            
+            // Инициализация
+            function init() {
+                createDayLabels();
                 updateAll();
                 initPWA();
-
+                initWakeLock();
+                initServiceWorker();
+                
+                // Запуск обновления каждую секунду
                 setInterval(updateAll, 1000);
-
+                
+                // Плавное появление
                 setTimeout(() => {
                     document.body.style.transition = 'opacity 0.8s ease';
                     document.body.style.opacity = '1';
                 }, 100);
                 
                 document.body.style.opacity = '0';
-            };
-
+            }
+            
+            // Запуск приложения
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
                 init();
-            }
-
-            if ('wakeLock' in navigator && window.location.protocol === 'https:') {
-                let wakeLock = null;
-                
-                const requestWakeLock = async () => {
-                    try {
-                        wakeLock = await navigator.wakeLock.request('screen');
-                    } catch (err) {
-                    }
-                };
-                
-                requestWakeLock();
-                
-                document.addEventListener('visibilitychange', () => {
-                    if (document.visibilityState === 'visible') {
-                        requestWakeLock();
-                    }
-                });
-            }
-
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js').catch(err => {
-                        console.log('Service Worker registration failed:', err);
-                    });
-                });
             }
             
         })();

@@ -1,57 +1,78 @@
-const CACHE_NAME = 'weekflow-v1.0';
-const urlsToCache = [
+const CACHE_NAME = 'weekflow-v1.1';
+const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './manifest.json',
     './icon-72x72.png',
     './icon-192x192.png',
-    './icon-512x512.png'
+    './icon-512x512.png',
+    './icon-32x32.png'
 ];
 
-self.addEventListener('install', event => {
+// Установка Service Worker
+self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
-                return cache.addAll(urlsToCache);
-            })
+            .then((cache) => cache.addAll(ASSETS_TO_CACHE))
+            .then(() => self.skipWaiting())
     );
 });
 
-self.addEventListener('activate', event => {
+// Активация и очистка старых кешей
+self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys().then(cacheNames => {
+        caches.keys().then((cacheNames) => {
             return Promise.all(
-                cacheNames.map(cacheName => {
+                cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
                         return caches.delete(cacheName);
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim())
     );
 });
 
-self.addEventListener('fetch', event => {
+// Стратегия кеширования: Network First, Fallback to Cache
+self.addEventListener('fetch', (event) => {
+    // Пропускаем не-GET запросы и chrome-extension
+    if (event.request.method !== 'GET' || 
+        event.request.url.startsWith('chrome-extension://')) {
+        return;
+    }
+
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
+        fetch(event.request)
+            .then((response) => {
+                // Клонируем ответ для кеширования
+                const responseClone = response.clone();
                 
-                return fetch(event.request)
-                    .then(response => {
-                        if (!response || response.status !== 200 || response.type !== 'basic') {
-                            return response;
+                caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, responseClone);
+                });
+                
+                return response;
+            })
+            .catch(() => {
+                // Если сеть недоступна, используем кеш
+                return caches.match(event.request)
+                    .then((cachedResponse) => {
+                        if (cachedResponse) {
+                            return cachedResponse;
                         }
                         
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                cache.put(event.request, responseToCache);
-                            });
+                        // Для основных страниц возвращаем index.html
+                        if (event.request.mode === 'navigate') {
+                            return caches.match('./index.html');
+                        }
                         
-                        return response;
+                        return new Response('Офлайн режим', {
+                            status: 503,
+                            statusText: 'Service Unavailable',
+                            headers: new Headers({
+                                'Content-Type': 'text/plain'
+                            })
+                        });
                     });
             })
     );

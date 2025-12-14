@@ -1,7 +1,7 @@
 {
-  "name": "WeekFlow — OLED часы",
+  "name": "WeekFlow — OLED Часы",
   "short_name": "WeekFlow",
-  "description": "Минималистичные OLED часы с градиентом дней недели. Неделя начинается с понедельника.",
+  "description": "Минималистичные OLED часы с неоновыми цветами для каждого дня недели. Установите на рабочий стол как PWA.",
   "start_url": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay"],
@@ -11,7 +11,7 @@
   "scope": "./",
   "lang": "ru",
   "dir": "ltr",
-  "categories": ["utilities", "productivity"],
+  "categories": ["utilities", "productivity", "lifestyle"],
   "icons": [
     {
       "src": "./icon-72x72.png",
@@ -32,12 +32,17 @@
       "purpose": "any maskable"
     }
   ],
-  "protocol_handlers": [
+  "shortcuts": [
     {
-      "protocol": "web+weekflow",
-      "url": "/?time=%s"
+      "name": "Открыть часы",
+      "short_name": "Часы",
+      "description": "Быстрый запуск часов",
+      "url": "./"
     }
   ],
-  "related_applications": [],
-  "prefer_related_applications": false
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
