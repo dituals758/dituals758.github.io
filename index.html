@@ -1,41 +1,781 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>WeekFlow — Минималистичные цифровые часы</title>
-<meta name="description" content="Минималистичные часы с цветовой кодировкой дней недели. Установите как PWA приложение.">
-<meta name="theme-color" content="#000000">
-<link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
-<link rel="icon" href="./favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="./icon-32x32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192x192.png">
-<link rel="apple-touch-icon" href="./icon-180x180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;350;400;450;500&display=swap" rel="stylesheet">
-<style>
-:root{--black:#000;--white:#fff;--g50:#0a0a0a;--g100:#111;--g200:#1a1a1a;--g300:#333;--g400:#666;--g500:#999;--mon:#3a86ff;--tue:#38b6ff;--wed:#8338ec;--thu:#ff006e;--fri:#fb5607;--sat:#06d6a0;--sun:#ef476f}*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent}html,body{width:100%;height:100%;overflow:hidden}body{background:var(--black);color:var(--white);font-family:Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}.container{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:80px}.header{text-align:center;position:absolute;top:max(20px,env(safe-area-inset-top,20px));width:100%;z-index:10;padding:0 20px}.title{font-size:clamp(1.2rem,4vw,1.8rem);font-weight:500;text-transform:uppercase;color:var(--g500)}.subtitle{font-size:clamp(.7rem,2vw,.9rem);color:var(--g400)}.clock-container{position:relative;width:min(85vmin,85vh,500px);height:min(85vmin,85vh,500px);aspect-ratio:1/1;margin:auto 0}.week-segments{position:absolute;width:100%;height:100%;border-radius:50%;overflow:hidden}.week-segment{position:absolute;width:50%;height:50%;transform-origin:100% 100%;clip-path:polygon(0 0,100% 0,100% 100%);opacity:.03;transition:opacity .3s ease}.week-segment:nth-child(1){transform:rotate(0deg);background:var(--mon)}.week-segment:nth-child(2){transform:rotate(51.42857deg);background:var(--tue)}.week-segment:nth-child(3){transform:rotate(102.85714deg);background:var(--wed)}.week-segment:nth-child(4){transform:rotate(154.28571deg);background:var(--thu)}.week-segment:nth-child(5){transform:rotate(205.71428deg);background:var(--fri)}.week-segment:nth-child(6){transform:rotate(257.14285deg);background:var(--sat)}.week-segment:nth-child(7){transform:rotate(308.57142deg);background:var(--sun)}.week-segment.active{opacity:.08}.clock-face{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:76%;height:76%;border-radius:50%;background:var(--g50);border:1px solid var(--g200);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12% 8%}.time-container{margin-bottom:1.5vh;width:100%}.time-row{display:flex;align-items:baseline;justify-content:center;width:100%}.time-part{font-size:clamp(3rem,14vmin,5.5rem);font-weight:350;font-variant-numeric:tabular-nums;color:var(--white);line-height:1;font-family:SF Mono,Roboto Mono,monospace;min-width:1.2em}.seconds{font-size:clamp(2.2rem,10vmin,4rem);color:var(--g400)}.time-colon{font-size:clamp(3rem,14vmin,5.5rem);font-weight:250;color:var(--g300);line-height:1;margin:0 .05em;top:-.05em;position:relative;min-width:.3em}.colon-seconds{font-size:clamp(2.2rem,10vmin,4rem)}.date-container{margin:2vh 0;width:100%;position:relative}.date-container:before{content:'';position:absolute;top:-.8vh;left:50%;transform:translateX(-50%);width:30%;height:1px;background:linear-gradient(90deg,transparent,var(--g300) 50%,transparent)}.day-name{font-size:clamp(1.2rem,4vmin,2rem);font-weight:450;text-transform:uppercase;color:var(--white);margin-bottom:.2vh}.date{font-size:clamp(1rem,3vmin,1.5rem);color:var(--g400)}.status-container{margin-top:2vh;width:100%;position:relative}.status-container:before{content:'';position:absolute;top:-.8vh;left:50%;transform:translateX(-50%);width:20%;height:1px;background:linear-gradient(90deg,transparent,var(--g300) 50%,transparent)}.status{font-size:clamp(.8rem,2.5vmin,1rem);text-transform:uppercase;color:var(--g500)}.day-labels{position:absolute;width:100%;height:100%;border-radius:50%;z-index:1;pointer-events:none}.day-label{position:absolute;font-size:clamp(.75rem,2.5vmin,1.1rem);font-weight:350;text-transform:uppercase;opacity:.3;transform:translate(-50%,-50%);color:var(--white)}.day-label.active{opacity:.8;font-weight:500}.progress-ring{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%}.progress-circle{fill:none;stroke-width:1.5;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .5s ease}.footer{position:fixed;bottom:max(10px,env(safe-area-inset-bottom,10px));width:100%;text-align:center;font-size:clamp(.6rem,1.5vmin,.75rem);color:var(--g400);z-index:10}.footer a{color:var(--g400);text-decoration:none}.install-button{position:fixed;top:max(10px,2vmin);right:max(10px,2vmin);background:transparent;border:1px solid var(--g300);color:var(--g300);padding:clamp(8px,1.5vmin,10px) clamp(12px,2vmin,16px);border-radius:6px;font-size:clamp(.65rem,1.8vmin,.85rem);cursor:pointer;opacity:0;transition:opacity .2s ease;z-index:1000;white-space:nowrap}.install-button.show{opacity:1}@media (orientation:landscape){.container{padding-top:60px}.header{top:max(10px,env(safe-area-inset-top,10px))}.title{font-size:clamp(1rem,3vw,1.4rem)}.subtitle{font-size:clamp(.6rem,1.5vw,.8rem)}.clock-container{width:min(75vmin,75vh,450px);height:min(75vmin,75vh,450px)}.time-part{font-size:clamp(2.5rem,12vmin,4.5rem)}.time-colon{font-size:clamp(2.5rem,12vmin,4.5rem)}.seconds{font-size:clamp(1.8rem,8vmin,3.5rem)}.colon-seconds{font-size:clamp(1.8rem,8vmin,3.5rem)}}@media (orientation:landscape)and (max-height:500px){.container{padding-top:50px}.header{top:max(5px,env(safe-area-inset-top,5px))}.title{font-size:clamp(.9rem,2.5vw,1.2rem)}.subtitle{font-size:clamp(.5rem,1.2vw,.7rem)}.clock-container{width:min(70vmin,70vh,400px);height:min(70vmin,70vh,400px)}.time-part{font-size:clamp(2.2rem,10vmin,4rem)}.time-colon{font-size:clamp(2.2rem,10vmin,4rem)}.seconds{font-size:clamp(1.6rem,7vmin,3rem)}.colon-seconds{font-size:clamp(1.6rem,7vmin,3rem)}}@media (display-mode:standalone){.install-button{display:none}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}body{animation:fadeIn .8s ease}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <title>WeekFlow — Минималистичные цифровые часы</title>
+    <meta name="description" content="Минималистичные часы с цветовой кодировкой дней недели. Установите как PWA приложение.">
+    <meta name="theme-color" content="#000000">
+    
+    <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
+    <link rel="icon" href="./favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="./icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192x192.png">
+    <link rel="apple-touch-icon" href="./icon-180x180.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;350;400;450;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --black: #000;
+            --white: #fff;
+            --g50: #0a0a0a;
+            --g100: #111;
+            --g200: #1a1a1a;
+            --g300: #333;
+            --g400: #666;
+            --g500: #999;
+            --mon: #3a86ff;
+            --tue: #38b6ff;
+            --wed: #8338ec;
+            --thu: #ff006e;
+            --fri: #fb5607;
+            --sat: #06d6a0;
+            --sun: #ef476f;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'Inter', system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 80px;
+        }
+        
+        .header {
+            text-align: center;
+            position: absolute;
+            top: max(20px, env(safe-area-inset-top, 20px));
+            width: 100%;
+            z-index: 10;
+            padding: 0 20px;
+        }
+        
+        .title {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            font-weight: 500;
+            text-transform: uppercase;
+            color: var(--g500);
+        }
+        
+        .subtitle {
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            color: var(--g400);
+        }
+        
+        .clock-container {
+            position: relative;
+            width: min(95vmin, 95vh, 700px);
+            height: min(95vmin, 95vh, 700px);
+            aspect-ratio: 1/1;
+            margin: auto 0;
+        }
+        
+        .week-segments {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .week-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            opacity: 0.03;
+            transition: opacity 0.3s ease;
+        }
+        
+        .week-segment:nth-child(1) {
+            transform: rotate(0deg);
+            background: var(--mon);
+        }
+        
+        .week-segment:nth-child(2) {
+            transform: rotate(51.42857deg);
+            background: var(--tue);
+        }
+        
+        .week-segment:nth-child(3) {
+            transform: rotate(102.85714deg);
+            background: var(--wed);
+        }
+        
+        .week-segment:nth-child(4) {
+            transform: rotate(154.28571deg);
+            background: var(--thu);
+        }
+        
+        .week-segment:nth-child(5) {
+            transform: rotate(205.71428deg);
+            background: var(--fri);
+        }
+        
+        .week-segment:nth-child(6) {
+            transform: rotate(257.14285deg);
+            background: var(--sat);
+        }
+        
+        .week-segment:nth-child(7) {
+            transform: rotate(308.57142deg);
+            background: var(--sun);
+        }
+        
+        .week-segment.active {
+            opacity: 0.08;
+        }
+        
+        .clock-face {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: var(--g50);
+            border: 1px solid var(--g200);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12% 8%;
+        }
+        
+        .time-container {
+            margin-bottom: 1.5vh;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .time-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .time-part {
+            font-size: clamp(3.5rem, 16vmin, 6.5rem);
+            font-weight: 350;
+            font-variant-numeric: tabular-nums;
+            color: var(--white);
+            line-height: 1;
+            font-family: 'SF Mono', 'Roboto Mono', monospace;
+            min-width: 1.2em;
+            text-align: center;
+        }
+        
+        .seconds {
+            font-size: clamp(2.6rem, 12vmin, 5rem);
+            color: var(--g400);
+        }
+        
+        .time-colon {
+            font-size: clamp(3.5rem, 16vmin, 6.5rem);
+            font-weight: 250;
+            color: var(--g300);
+            line-height: 1;
+            margin: 0 0.05em;
+            position: relative;
+            top: -0.05em;
+            min-width: 0.3em;
+            text-align: center;
+        }
+        
+        .colon-seconds {
+            font-size: clamp(2.6rem, 12vmin, 5rem);
+        }
+        
+        .date-container {
+            margin: 2vh 0;
+            width: 100%;
+            position: relative;
+            text-align: center;
+        }
+        
+        .date-container::before {
+            content: '';
+            position: absolute;
+            top: -0.8vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--g300) 50%, transparent);
+        }
+        
+        .day-name {
+            font-size: clamp(1.4rem, 5vmin, 2.2rem);
+            font-weight: 450;
+            text-transform: uppercase;
+            color: var(--white);
+            margin-bottom: 0.2vh;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .date {
+            font-size: clamp(1.2rem, 3.5vmin, 1.8rem);
+            color: var(--g400);
+            text-align: center;
+            width: 100%;
+        }
+        
+        .status-container {
+            margin-top: 2vh;
+            width: 100%;
+            position: relative;
+            text-align: center;
+        }
+        
+        .status-container::before {
+            content: '';
+            position: absolute;
+            top: -0.8vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--g300) 50%, transparent);
+        }
+        
+        .status {
+            font-size: clamp(0.9rem, 2.8vmin, 1.2rem);
+            text-transform: uppercase;
+            color: var(--g500);
+            text-align: center;
+            width: 100%;
+        }
+        
+        .day-labels {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .day-label {
+            position: absolute;
+            font-size: clamp(0.85rem, 2.8vmin, 1.3rem);
+            font-weight: 350;
+            text-transform: uppercase;
+            opacity: 0.3;
+            transform: translate(-50%, -50%);
+            color: var(--white);
+        }
+        
+        .day-label.active {
+            opacity: 0.8;
+            font-weight: 500;
+        }
+        
+        .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+        
+        .progress-circle {
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: max(10px, env(safe-area-inset-bottom, 10px));
+            width: 100%;
+            text-align: center;
+            font-size: clamp(0.6rem, 1.5vmin, 0.75rem);
+            color: var(--g400);
+            z-index: 10;
+        }
+        
+        .footer a {
+            color: var(--g400);
+            text-decoration: none;
+        }
+        
+        .install-button {
+            position: fixed;
+            top: max(10px, 2vmin);
+            right: max(10px, 2vmin);
+            background: transparent;
+            border: 1px solid var(--g300);
+            color: var(--g300);
+            padding: clamp(8px, 1.5vmin, 10px) clamp(12px, 2vmin, 16px);
+            border-radius: 6px;
+            font-size: clamp(0.65rem, 1.8vmin, 0.85rem);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        
+        .install-button.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .clock-container {
+                width: min(90vmin, 90vh, 500px);
+                height: min(90vmin, 90vh, 500px);
+            }
+            
+            .time-part {
+                font-size: clamp(3rem, 14vmin, 5.5rem);
+            }
+            
+            .time-colon {
+                font-size: clamp(3rem, 14vmin, 5.5rem);
+            }
+            
+            .seconds {
+                font-size: clamp(2.2rem, 10vmin, 4rem);
+            }
+            
+            .colon-seconds {
+                font-size: clamp(2.2rem, 10vmin, 4rem);
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 500px) {
+            .container {
+                padding-top: 50px;
+            }
+            
+            .header {
+                top: max(5px, env(safe-area-inset-top, 5px));
+            }
+            
+            .title {
+                font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+            }
+            
+            .subtitle {
+                font-size: clamp(0.5rem, 1.2vw, 0.7rem);
+            }
+            
+            .clock-container {
+                width: min(70vmin, 70vh, 400px);
+                height: min(70vmin, 70vh, 400px);
+            }
+            
+            .time-part {
+                font-size: clamp(2.2rem, 10vmin, 4rem);
+            }
+            
+            .time-colon {
+                font-size: clamp(2.2rem, 10vmin, 4rem);
+            }
+            
+            .seconds {
+                font-size: clamp(1.6rem, 7vmin, 3rem);
+            }
+            
+            .colon-seconds {
+                font-size: clamp(1.6rem, 7vmin, 3rem);
+            }
+        }
+        
+        @media (display-mode: standalone) {
+            .install-button {
+                display: none;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        body {
+            animation: fadeIn 0.8s ease;
+        }
+    </style>
 </head>
 <body>
-<button id="installButton" class="install-button">Установить</button>
-<div class="container">
-<header class="header"><h1 class="title">WeekFlow</h1><p class="subtitle">Минималистичные Часы</p></header>
-<main class="clock-container">
-<div id="weekSegments" class="week-segments"><div class="week-segment"></div><div class="week-segment"></div><div class="week-segment"></div><div class="week-segment"></div><div class="week-segment"></div><div class="week-segment"></div><div class="week-segment"></div></div>
-<svg class="progress-ring" id="progressRing"><circle class="progress-circle" id="progressCircle" cx="50%" cy="50%" r="48%"/></svg>
-<div id="dayLabels" class="day-labels"></div>
-<div class="clock-face">
-<div class="time-container"><div class="time-row"><div id="hours" class="time-part"></div><span id="colon1" class="time-colon">:</span><div id="minutes" class="time-part"></div><span id="colon2" class="time-colon colon-seconds">:</span><div id="seconds" class="time-part seconds"></div></div></div>
-<div class="date-container"><div id="dayName" class="day-name"></div><div id="date" class="date"></div></div>
-<div class="status-container"><div id="status" class="status"></div></div>
-</div>
-</main>
-</div>
-<footer class="footer">WeekFlow © <a href="https://github.com/dituals758" target="_blank" rel="noopener">dituals758</a></footer>
-<script>
-'use strict';const c={DAY_COLORS:['#3a86ff','#38b6ff','#8338ec','#ff006e','#fb5607','#06d6a0','#ef476f'],DAYS_RU:['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'],DAYS_SHORT_RU:['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'],MONTHS_RU:['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'],STATUS_TEXTS:{WEEKEND_NIGHT:'Выходной · Ночь',WEEKEND_MORNING:'Выходной · Утро',WEEKEND_DAY:'Выходной · День',WEEKEND_EVENING:'Выходной · Вечер',NIGHT:'Ночь',MORNING:'Утро',DAY:'День',EVENING:'Вечер'}};const e={hours:document.getElementById('hours'),minutes:document.getElementById('minutes'),seconds:document.getElementById('seconds'),colon1:document.getElementById('colon1'),colon2:document.getElementById('colon2'),dayName:document.getElementById('dayName'),date:document.getElementById('date'),status:document.getElementById('status'),weekSegments:document.getElementById('weekSegments'),dayLabels:document.getElementById('dayLabels'),installButton:document.getElementById('installButton'),clockContainer:document.querySelector('.clock-container'),progressCircle:document.getElementById('progressCircle')};let t,n,a,o=-1,r=-1;const i=e=>e<10?`0${e}`:`${e}`,s=e=>0===e.getDay()?6:e.getDay()-1;function d(){const t=new Date,n=t.getSeconds()%2==0;e.hours.textContent=i(t.getHours()),e.minutes.textContent=i(t.getMinutes()),e.seconds.textContent=i(t.getSeconds()),e.colon1.style.opacity=n?.6:1,e.colon2.style.opacity=n?.6:1}function l(){const t=new Date,n=s(t);if(o!==n){o=n;const a=c.DAY_COLORS[n];e.dayName.textContent=c.DAYS_RU[n],e.dayName.style.color=a,e.hours.style.color=a,e.minutes.style.color=a,e.progressCircle.style.stroke=a;const r=e.weekSegments.querySelectorAll('.week-segment');r.forEach((e,t)=>{e.classList.toggle('active',t===n)})}e.date.textContent=`${t.getDate()} ${c.MONTHS_RU[t.getMonth()]} ${t.getFullYear()}`}function u(){if(e.progressCircle){const t=new Date,n=new Date(t.getFullYear(),t.getMonth(),t.getDate()),a=n.getTime()+864e5,o=t-n,r=Math.min(o/(a-n),1),i=48,s=2*Math.PI*i,d=s-r*s;e.progressCircle.style.strokeDasharray=`${s} ${s}`,e.progressCircle.style.strokeDashoffset=d}}function f(){const t=e.clockContainer.offsetWidth;if(t){const n=t/2,a=n,o=n*.88;c.DAYS_SHORT_RU.forEach((r,i)=>{const s=(i*(360/7)-90)*Math.PI/180,d=a+o*Math.cos(s),l=a+o*Math.sin(s),u=document.createElement('div');u.className='day-label',u.textContent=r,u.style.left=`${d}px`,u.style.top=`${l}px`,u.style.color=c.DAY_COLORS[i],e.dayLabels.appendChild(u)})}}function m(){const t=s(new Date),n=e.dayLabels.querySelectorAll('.day-label');n.forEach((e,t)=>{const n=t===t;e.classList.toggle('active',n),e.style.opacity=n?.8:.3})}function h(){const t=new Date,n=s(t),a=t.getHours();if(r!==a){r=a;let o='';o=n>=5?a<6?c.STATUS_TEXTS.WEEKEND_NIGHT:a<12?c.STATUS_TEXTS.WEEKEND_MORNING:a<18?c.STATUS_TEXTS.WEEKEND_DAY:c.STATUS_TEXTS.WEEKEND_EVENING:a<6?c.STATUS_TEXTS.NIGHT:a<12?c.STATUS_TEXTS.MORNING:a<18?c.STATUS_TEXTS.DAY:c.STATUS_TEXTS.EVENING,e.status.textContent=o}}function p(){const t=e.clockContainer.offsetWidth;if(t){const n=t/2,a=n,o=n*.88,r=e.dayLabels.querySelectorAll('.day-label');r.forEach((e,t)=>{const r=(t*(360/7)-90)*Math.PI/180,i=a+o*Math.cos(r),s=a+o*Math.sin(r);e.style.left=`${i}px`,e.style.top=`${s}px`})}}function b(){window.addEventListener('beforeinstallprompt',t=>{t.preventDefault(),n=t,e.installButton.classList.add('show'),e.installButton.addEventListener('click',async()=>{if(!n)return;try{n.prompt();const{outcome:t}=await n.userChoice;t==='accepted'&&console.log('WeekFlow installed')}catch(t){console.error('Install error:',t)}n=null,e.installButton.classList.remove('show')})}),window.addEventListener('appinstalled',()=>{e.installButton.classList.remove('show'),n=null}),window.matchMedia('(display-mode: standalone)').matches||!0===window.navigator.standalone&&(e.installButton.style.display='none')}function g(){'serviceWorker'in navigator&&window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').then(t=>console.log('SW registered:',t.scope)).catch(t=>console.error('SW failed:',t))})}function v(){f(),d(),l(),u(),m(),h(),'ResizeObserver'in window&&(a=new ResizeObserver(()=>{clearTimeout(t),t=setTimeout(p,100)})),a?.observe(e.clockContainer),window.addEventListener('resize',()=>{clearTimeout(t),t=setTimeout(p,100)}),window.addEventListener('orientationchange',()=>{setTimeout(p,400)}),b(),g();let n=Date.now();const r=setInterval(()=>{Date.now()-n>=1e3&&(d(),l(),u(),m(),h(),n=Date.now())},100);window.addEventListener('beforeunload',()=>{clearInterval(r),a?.disconnect()})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',v):v();
-</script>
+    <button id="installButton" class="install-button">Установить</button>
+    
+    <div class="container">
+        <header class="header">
+            <h1 class="title">WeekFlow</h1>
+            <p class="subtitle">Минималистичные Часы</p>
+        </header>
+        
+        <main class="clock-container">
+            <div id="weekSegments" class="week-segments">
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+            </div>
+            
+            <svg class="progress-ring" id="progressRing">
+                <circle class="progress-circle" id="progressCircle" cx="50%" cy="50%" r="48%" />
+            </svg>
+            
+            <div id="dayLabels" class="day-labels"></div>
+            
+            <div class="clock-face">
+                <div class="time-container">
+                    <div class="time-row">
+                        <div id="hours" class="time-part"></div>
+                        <span id="colon1" class="time-colon">:</span>
+                        <div id="minutes" class="time-part"></div>
+                        <span id="colon2" class="time-colon colon-seconds">:</span>
+                        <div id="seconds" class="time-part seconds"></div>
+                    </div>
+                </div>
+                
+                <div class="date-container">
+                    <div id="dayName" class="day-name"></div>
+                    <div id="date" class="date"></div>
+                </div>
+                
+                <div class="status-container">
+                    <div id="status" class="status"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <footer class="footer">
+        WeekFlow © <a href="https://github.com/dituals758/dituals758.github.io" target="_blank" rel="noopener">dituals758</a>
+    </footer>
+
+    <script>
+        (function() {
+            'use strict';
+            
+            const CONFIG = {
+                DAY_COLORS: ['#3a86ff', '#38b6ff', '#8338ec', '#ff006e', '#fb5607', '#06d6a0', '#ef476f'],
+                DAYS_RU: ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'],
+                DAYS_SHORT_RU: ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'],
+                MONTHS_RU: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
+                STATUS_TEXTS: {
+                    WEEKEND_NIGHT: 'Выходной · Ночь',
+                    WEEKEND_MORNING: 'Выходной · Утро',
+                    WEEKEND_DAY: 'Выходной · День',
+                    WEEKEND_EVENING: 'Выходной · Вечер',
+                    NIGHT: 'Ночь',
+                    MORNING: 'Утро',
+                    DAY: 'День',
+                    EVENING: 'Вечер'
+                }
+            };
+            
+            const elements = {
+                hours: document.getElementById('hours'),
+                minutes: document.getElementById('minutes'),
+                seconds: document.getElementById('seconds'),
+                colon1: document.getElementById('colon1'),
+                colon2: document.getElementById('colon2'),
+                dayName: document.getElementById('dayName'),
+                date: document.getElementById('date'),
+                status: document.getElementById('status'),
+                weekSegments: document.getElementById('weekSegments'),
+                dayLabels: document.getElementById('dayLabels'),
+                installButton: document.getElementById('installButton'),
+                clockContainer: document.querySelector('.clock-container'),
+                progressCircle: document.getElementById('progressCircle')
+            };
+            
+            let deferredPrompt = null;
+            let resizeObserver = null;
+            let updateInterval = null;
+            let currentDay = -1;
+            let currentHour = -1;
+            
+            const formatNumber = num => num < 10 ? `0${num}` : `${num}`;
+            const getRussianDay = date => date.getDay() === 0 ? 6 : date.getDay() - 1;
+            
+            function updateTime() {
+                const now = new Date();
+                const isEvenSecond = now.getSeconds() % 2 === 0;
+                
+                elements.hours.textContent = formatNumber(now.getHours());
+                elements.minutes.textContent = formatNumber(now.getMinutes());
+                elements.seconds.textContent = formatNumber(now.getSeconds());
+                
+                elements.colon1.style.opacity = isEvenSecond ? '0.6' : '1';
+                elements.colon2.style.opacity = isEvenSecond ? '0.6' : '1';
+            }
+            
+            function updateDate() {
+                const now = new Date();
+                const russianDay = getRussianDay(now);
+                
+                if (currentDay !== russianDay) {
+                    currentDay = russianDay;
+                    const dayColor = CONFIG.DAY_COLORS[russianDay];
+                    
+                    elements.dayName.textContent = CONFIG.DAYS_RU[russianDay];
+                    elements.dayName.style.color = dayColor;
+                    elements.hours.style.color = dayColor;
+                    elements.minutes.style.color = dayColor;
+                    elements.progressCircle.style.stroke = dayColor;
+                    
+                    const segments = elements.weekSegments.querySelectorAll('.week-segment');
+                    segments.forEach((segment, index) => {
+                        segment.classList.toggle('active', index === russianDay);
+                    });
+                }
+                
+                elements.date.textContent = `${now.getDate()} ${CONFIG.MONTHS_RU[now.getMonth()]} ${now.getFullYear()}`;
+            }
+            
+            function updateProgressRing() {
+                if (!elements.progressCircle) return;
+                
+                const now = new Date();
+                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const endOfDay = new Date(startOfDay.getTime() + 86400000);
+                const totalDayLength = endOfDay - startOfDay;
+                const elapsed = now - startOfDay;
+                const progress = Math.min(elapsed / totalDayLength, 1);
+                
+                const radius = 48;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (progress * circumference);
+                
+                elements.progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+                elements.progressCircle.style.strokeDashoffset = offset;
+            }
+            
+            function createDayLabels() {
+                const containerWidth = elements.clockContainer.offsetWidth;
+                if (!containerWidth) return;
+                
+                const radius = containerWidth / 2;
+                const center = radius;
+                const labelRadius = radius * 0.88;
+                
+                CONFIG.DAYS_SHORT_RU.forEach((day, index) => {
+                    const angle = (index * (360 / 7) - 90) * Math.PI / 180;
+                    const x = center + labelRadius * Math.cos(angle);
+                    const y = center + labelRadius * Math.sin(angle);
+                    
+                    const label = document.createElement('div');
+                    label.className = 'day-label';
+                    label.textContent = day;
+                    label.style.left = `${x}px`;
+                    label.style.top = `${y}px`;
+                    label.style.color = CONFIG.DAY_COLORS[index];
+                    
+                    elements.dayLabels.appendChild(label);
+                });
+            }
+            
+            function updateDayLabels() {
+                const russianDay = getRussianDay(new Date());
+                const labels = elements.dayLabels.querySelectorAll('.day-label');
+                
+                labels.forEach((label, index) => {
+                    const isActive = index === russianDay;
+                    label.classList.toggle('active', isActive);
+                    label.style.opacity = isActive ? '0.8' : '0.3';
+                });
+            }
+            
+            function updateStatus() {
+                const now = new Date();
+                const russianDay = getRussianDay(now);
+                const hour = now.getHours();
+                
+                if (currentHour === hour) return;
+                currentHour = hour;
+                
+                let statusText = '';
+                
+                if (russianDay >= 5) {
+                    if (hour < 6) statusText = CONFIG.STATUS_TEXTS.WEEKEND_NIGHT;
+                    else if (hour < 12) statusText = CONFIG.STATUS_TEXTS.WEEKEND_MORNING;
+                    else if (hour < 18) statusText = CONFIG.STATUS_TEXTS.WEEKEND_DAY;
+                    else statusText = CONFIG.STATUS_TEXTS.WEEKEND_EVENING;
+                } else {
+                    if (hour < 6) statusText = CONFIG.STATUS_TEXTS.NIGHT;
+                    else if (hour < 12) statusText = CONFIG.STATUS_TEXTS.MORNING;
+                    else if (hour < 18) statusText = CONFIG.STATUS_TEXTS.DAY;
+                    else statusText = CONFIG.STATUS_TEXTS.EVENING;
+                }
+                
+                elements.status.textContent = statusText;
+            }
+            
+            function repositionDayLabels() {
+                const containerWidth = elements.clockContainer.offsetWidth;
+                if (!containerWidth) return;
+                
+                const radius = containerWidth / 2;
+                const center = radius;
+                const labelRadius = radius * 0.88;
+                const labels = elements.dayLabels.querySelectorAll('.day-label');
+                
+                labels.forEach((label, index) => {
+                    const angle = (index * (360 / 7) - 90) * Math.PI / 180;
+                    const x = center + labelRadius * Math.cos(angle);
+                    const y = center + labelRadius * Math.sin(angle);
+                    
+                    label.style.left = `${x}px`;
+                    label.style.top = `${y}px`;
+                });
+            }
+            
+            function initPWA() {
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    
+                    elements.installButton.classList.add('show');
+                    
+                    elements.installButton.addEventListener('click', async () => {
+                        if (!deferredPrompt) return;
+                        
+                        try {
+                            deferredPrompt.prompt();
+                            const { outcome } = await deferredPrompt.userChoice;
+                            
+                            if (outcome === 'accepted') {
+                                console.log('WeekFlow установлено');
+                            }
+                        } catch (error) {
+                            console.error('Ошибка установки:', error);
+                        }
+                        
+                        deferredPrompt = null;
+                        elements.installButton.classList.remove('show');
+                    });
+                });
+                
+                window.addEventListener('appinstalled', () => {
+                    elements.installButton.classList.remove('show');
+                    deferredPrompt = null;
+                });
+                
+                if (window.matchMedia('(display-mode: standalone)').matches || 
+                    window.navigator.standalone === true) {
+                    elements.installButton.style.display = 'none';
+                }
+            }
+            
+            function initServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('./sw.js')
+                            .then(reg => console.log('Service Worker зарегистрирован:', reg.scope))
+                            .catch(err => console.error('Service Worker ошибка:', err));
+                    });
+                }
+            }
+            
+            function init() {
+                createDayLabels();
+                
+                updateTime();
+                updateDate();
+                updateProgressRing();
+                updateDayLabels();
+                updateStatus();
+                
+                if ('ResizeObserver' in window) {
+                    resizeObserver = new ResizeObserver(() => {
+                        clearTimeout(window.resizeTimeout);
+                        window.resizeTimeout = setTimeout(repositionDayLabels, 100);
+                    });
+                    resizeObserver.observe(elements.clockContainer);
+                }
+                
+                window.addEventListener('resize', () => {
+                    clearTimeout(window.resizeTimeout);
+                    window.resizeTimeout = setTimeout(repositionDayLabels, 100);
+                });
+                
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(() => {
+                        repositionDayLabels();
+                    }, 400);
+                });
+                
+                initPWA();
+                initServiceWorker();
+                
+                let lastUpdate = Date.now();
+                updateInterval = setInterval(() => {
+                    const now = Date.now();
+                    if (now - lastUpdate >= 1000) {
+                        updateTime();
+                        updateDate();
+                        updateProgressRing();
+                        updateDayLabels();
+                        updateStatus();
+                        lastUpdate = now;
+                    }
+                }, 100);
+                
+                window.addEventListener('beforeunload', () => {
+                    clearInterval(updateInterval);
+                    if (resizeObserver) resizeObserver.disconnect();
+                });
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
 </body>
 </html>
