@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'weekflow-v4.3';
+const CACHE_VERSION = 'weekflow-v4.3.1';
 const CRITICAL_ASSETS = [
     './',
     './index.html',
