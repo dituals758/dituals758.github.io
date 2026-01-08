@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'weekflow-v3.1';
+const CACHE_VERSION = 'weekflow-v4.3';
 const CRITICAL_ASSETS = [
     './',
     './index.html',
@@ -6,114 +6,106 @@ const CRITICAL_ASSETS = [
     './favicon.ico',
     './icon-32x32.png',
     './icon-72x72.png',
+    './icon-96x96.png',      // Добавлена для шорткатов PWA
+    './icon-144x144.png',    // Добавлена для browserconfig.xml
+    './icon-180x180.png',    // Для Apple Touch Icon
     './icon-192x192.png',
     './icon-512x512.png',
-    './404.html',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;350;400;450;500&display=swap'
+    './404.html'
 ];
 
 self.addEventListener('install', (event) => {
+    console.log('[Service Worker] Установка');
+    
     event.waitUntil(
         caches.open(CACHE_VERSION)
-            .then(cache => cache.addAll(CRITICAL_ASSETS))
+            .then((cache) => {
+                console.log('[Service Worker] Кэширование критических ресурсов');
+                // Используем addAll с обработкой ошибок для каждого ресурса
+                return Promise.all(
+                    CRITICAL_ASSETS.map(asset => {
+                        return cache.add(asset).catch(error => {
+                            console.warn(`[Service Worker] Не удалось кэшировать ${asset}:`, error);
+                        });
+                    })
+                );
+            })
             .then(() => self.skipWaiting())
-            .catch(error => console.error('SW install error:', error))
+            .catch((error) => {
+                console.error('[Service Worker] Ошибка установки:', error);
+            })
     );
 });
 
 self.addEventListener('activate', (event) => {
+    console.log('[Service Worker] Активация');
+    
     event.waitUntil(
         caches.keys()
-            .then(keys => Promise.all(
-                keys.map(key => {
-                    if (key !== CACHE_VERSION) {
-                        return caches.delete(key);
-                    }
-                })
-            ))
+            .then((keys) => {
+                return Promise.all(
+                    keys.map((key) => {
+                        if (key !== CACHE_VERSION) {
+                            console.log('[Service Worker] Удаление старого кэша:', key);
+                            return caches.delete(key);
+                        }
+                    })
+                );
+            })
             .then(() => self.clients.claim())
-            .catch(error => console.error('SW activate error:', error))
     );
 });
 
-const getResourceType = (request) => {
-    const url = new URL(request.url);
-    
-    if (url.pathname.endsWith('.html') || url.pathname === '/') return 'document';
-    if (url.pathname.endsWith('.js')) return 'script';
-    if (url.pathname.endsWith('.css')) return 'style';
-    if (url.pathname.includes('manifest')) return 'manifest';
-    if (url.pathname.includes('icon')) return 'icon';
-    if (url.pathname.includes('font') || url.host.includes('fonts')) return 'font';
-    if (url.pathname.includes('image') || /\.(png|jpg|jpeg|gif|svg|webp)$/i.test(url.pathname)) return 'image';
-    
-    return 'other';
-};
-
 self.addEventListener('fetch', (event) => {
+    // Пропускаем не-GET запросы
     if (event.request.method !== 'GET') return;
     
-    const url = event.request.url;
-    if (url.includes('chrome-extension://') || url.includes('browser-sync')) return;
-    
-    const resourceType = getResourceType(event.request);
+    // Пропускаем chrome-extension запросы
+    if (event.request.url.startsWith('chrome-extension://')) return;
     
     event.respondWith(
         (async () => {
             const cache = await caches.open(CACHE_VERSION);
-            const cachedResponse = await cache.match(event.request);
-            
-            if (cachedResponse && ['manifest', 'icon', 'font', 'style'].includes(resourceType)) {
-                return cachedResponse;
-            }
             
             try {
+                // Пробуем получить из сети
                 const networkResponse = await fetch(event.request);
-                if (networkResponse.ok) {
-                    await cache.put(event.request, networkResponse.clone());
-                    return networkResponse;
-                }
-                throw new Error('Fetch failed');
-            } catch (error) {
-                if (cachedResponse) return cachedResponse;
                 
-                if (resourceType === 'document') {
+                // Если ответ успешный - кэшируем
+                if (networkResponse.ok) {
+                    // Для HTML файлов обновляем кэш
+                    if (event.request.destination === 'document' || 
+                        event.request.url.endsWith('.html')) {
+                        await cache.put(event.request, networkResponse.clone());
+                    }
+                }
+                
+                return networkResponse;
+            } catch (error) {
+                // Если сеть недоступна - пробуем кэш
+                const cachedResponse = await cache.match(event.request);
+                
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+                
+                // Если нет в кэше - для HTML возвращаем главную страницу
+                if (event.request.destination === 'document' || 
+                    event.request.url.endsWith('/') ||
+                    event.request.url.endsWith('.html')) {
                     const fallback = await cache.match('./index.html');
                     if (fallback) return fallback;
                 }
                 
-                return new Response('Offline', {
-                    status: 503,
-                    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-                });
-            }
-            
-            fetch(event.request)
-                .then(async (networkResponse) => {
-                    if (networkResponse.ok) {
-                        await cache.put(event.request, networkResponse.clone());
+                // В противном случае - оффлайн-страница
+                return new Response(
+                    '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Оффлайн</title><style>body{background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;}</style></head><body><div><h1>📶</h1><p>Нет подключения к интернету</p></div></body></html>',
+                    {
+                        status: 503,
+                        headers: { 'Content-Type': 'text/html; charset=utf-8' }
                     }
-                })
-                .catch(() => {});
+                );
+            }
         })()
     );
-});
-
-self.addEventListener('message', (event) => {
-    const { data } = event;
-    
-    switch (data.type) {
-        case 'GET_CACHE_INFO':
-            event.ports[0]?.postMessage({
-                type: 'CACHE_INFO',
-                version: CACHE_VERSION
-            });
-            break;
-            
-        case 'CLEAR_CACHE':
-            caches.delete(CACHE_VERSION).then(() => {
-                event.ports[0]?.postMessage({ type: 'CACHE_CLEARED' });
-            });
-            break;
-    }
 });

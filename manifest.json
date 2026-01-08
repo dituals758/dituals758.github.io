@@ -12,13 +12,13 @@
             "src": "./icon-32x32.png",
             "sizes": "32x32",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
         },
         {
             "src": "./icon-72x72.png",
             "sizes": "72x72",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
         },
         {
             "src": "./icon-192x192.png",
@@ -33,10 +33,7 @@
             "purpose": "any maskable"
         }
     ],
-    "categories": [
-        "productivity",
-        "utilities"
-    ],
+    "categories": ["productivity", "utilities"],
     "lang": "ru",
     "dir": "ltr",
     "orientation": "portrait"
