@@ -17,1237 +17,757 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;350;400;450;500&display=swap" rel="stylesheet">
     
     <style>
-        /* === CSS ПЕРЕМЕННЫЕ (ЕДИНСТВЕННОЕ МЕСТО ОПРЕДЕЛЕНИЯ ЦВЕТОВ) === */
         :root {
-            /* Основные цвета */
-            --color-black: #000000;
-            --color-black-90: #0a0a0a;
-            --color-black-80: #111111;
-            --color-black-70: #1a1a1a;
-            --color-white: #ffffff;
-            --color-white-10: rgba(255, 255, 255, 0.1);
-            --color-white-20: rgba(255, 255, 255, 0.2);
-            --color-white-30: rgba(255, 255, 255, 0.3);
-            --color-white-50: rgba(255, 255, 255, 0.5);
-            
-            /* Цвета дней недели - ОПРЕДЕЛЯЕМ ТОЛЬКО ЗДЕСЬ */
-            --color-day-0: #00f3ff; /* Понедельник */
-            --color-day-1: #00ffaa; /* Вторник */
-            --color-day-2: #bd00ff; /* Среда */
-            --color-day-3: #ff0066; /* Четверг */
-            --color-day-4: #ffaa00; /* Пятница */
-            --color-day-5: #00ff40; /* Суббота */
-            --color-day-6: #ff0033; /* Воскресенье */
-            
-            /* Градиенты на основе цветов дней */
-            --gradient-primary: linear-gradient(45deg, var(--color-day-0), var(--color-day-2));
-            --gradient-week: conic-gradient(
-                var(--color-day-0) 0deg 51.4deg,
-                var(--color-day-1) 51.4deg 102.8deg,
-                var(--color-day-2) 102.8deg 154.2deg,
-                var(--color-day-3) 154.2deg 205.6deg,
-                var(--color-day-4) 205.6deg 257deg,
-                var(--color-day-5) 257deg 308.4deg,
-                var(--color-day-6) 308.4deg 360deg
-            );
-            
-            /* Анимации */
-            --transition-fast: 0.2s ease;
-            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 0.5s ease;
-            
-            /* Скругления */
-            --border-radius: 8px;
-            --border-radius-circle: 50%;
-            
-            /* Z-индексы */
-            --z-modal: 1000;
-            --z-top: 9999;
+            --black: #000;
+            --white: #fff;
+            --g50: #0a0a0a;
+            --g100: #111;
+            --g200: #1a1a1a;
+            --g300: #333;
+            --g400: #666;
+            --g500: #999;
+            --mon: #3a86ff;
+            --tue: #38b6ff;
+            --wed: #8338ec;
+            --thu: #ff006e;
+            --fri: #fb5607;
+            --sat: #06d6a0;
+            --sun: #ef476f;
         }
         
-        /* === СБРОС СТИЛЕЙ === */
-        *, *::before, *::after {
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-        
-        /* === ОСНОВНЫЕ СТИЛИ === */
-        html {
-            font-size: 16px;
-            -webkit-text-size-adjust: 100%;
+            user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
         
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--color-black);
-            color: var(--color-white);
+            background: var(--black);
+            color: var(--white);
+            font-family: 'Inter', system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             min-height: 100vh;
-            overflow: hidden;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) 
-                     env(safe-area-inset-bottom) env(safe-area-inset-left);
+            justify-content: flex-start;
+            padding-top: 80px;
         }
         
-        /* === УТИЛИТЫ === */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        .flex-center {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .text-center {
+        .header {
             text-align: center;
-        }
-        
-        .text-uppercase {
-            text-transform: uppercase;
-        }
-        
-        /* === КОМПОНЕНТЫ === */
-        
-        /* Кнопка */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.625rem 1.125rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            font-family: inherit;
-            color: var(--color-white);
-            background: var(--color-black-80);
-            border: 1px solid var(--color-white-10);
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: var(--transition-normal);
-            text-decoration: none;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        
-        .btn:hover {
-            background: var(--color-black-70);
-            border-color: var(--color-white-20);
-            transform: translateY(-1px);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn:focus-visible {
-            outline: 2px solid var(--color-day-0);
-            outline-offset: 2px;
-        }
-        
-        /* Верхняя панель */
-        .top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 1.25rem;
-            z-index: var(--z-modal);
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
-            pointer-events: none;
-        }
-        
-        .top-bar > * {
-            pointer-events: auto;
-        }
-        
-        .app-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            letter-spacing: 0.125rem;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        /* Круг недели */
-        .week-circle {
-            position: relative;
-            width: min(85vmin, 500px);
-            height: min(85vmin, 500px);
-            margin: 0 auto;
-        }
-        
-        .week-ring {
             position: absolute;
-            inset: 0;
-            border-radius: var(--border-radius-circle);
-            background: var(--gradient-week);
-            opacity: 0.15;
-            animation: rotateRing 120s linear infinite;
+            top: max(20px, env(safe-area-inset-top, 20px));
+            width: 100%;
+            z-index: 10;
+            padding: 0 20px;
         }
         
-        /* Циферблат */
+        .title {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            font-weight: 500;
+            text-transform: uppercase;
+            color: var(--g500);
+        }
+        
+        .subtitle {
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            color: var(--g400);
+        }
+        
+        .clock-container {
+            position: relative;
+            width: min(95vmin, 95vh, 700px);
+            height: min(95vmin, 95vh, 700px);
+            aspect-ratio: 1/1;
+            margin: auto 0;
+        }
+        
+        .week-segments {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .week-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+            opacity: 0.03;
+            transition: opacity 0.3s ease;
+        }
+        
+        .week-segment:nth-child(1) {
+            transform: rotate(0deg);
+            background: var(--mon);
+        }
+        
+        .week-segment:nth-child(2) {
+            transform: rotate(51.42857deg);
+            background: var(--tue);
+        }
+        
+        .week-segment:nth-child(3) {
+            transform: rotate(102.85714deg);
+            background: var(--wed);
+        }
+        
+        .week-segment:nth-child(4) {
+            transform: rotate(154.28571deg);
+            background: var(--thu);
+        }
+        
+        .week-segment:nth-child(5) {
+            transform: rotate(205.71428deg);
+            background: var(--fri);
+        }
+        
+        .week-segment:nth-child(6) {
+            transform: rotate(257.14285deg);
+            background: var(--sat);
+        }
+        
+        .week-segment:nth-child(7) {
+            transform: rotate(308.57142deg);
+            background: var(--sun);
+        }
+        
+        .week-segment.active {
+            opacity: 0.08;
+        }
+        
         .clock-face {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 70%;
-            height: 70%;
-            background: var(--color-black-90);
-            border-radius: var(--border-radius-circle);
-            border: 1px solid var(--color-black-70);
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: var(--g50);
+            border: 1px solid var(--g200);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
+            padding: 12% 8%;
         }
         
-        /* Время */
-        .time-display {
-            margin-bottom: 1.25rem;
+        .time-container {
+            margin-bottom: 1.5vh;
+            width: 100%;
+            text-align: center;
         }
         
-        .time-main {
+        .time-row {
             display: flex;
             align-items: baseline;
             justify-content: center;
-            gap: 0.25rem;
-            margin-bottom: 0.25rem;
+            width: 100%;
         }
         
-        .time-digit {
-            font-family: 'JetBrains Mono', 'SF Mono', 'Roboto Mono', monospace;
-            font-size: clamp(3rem, 10vmin, 4rem);
-            font-weight: 300;
+        .time-part {
+            font-size: clamp(3.5rem, 16vmin, 6.5rem);
+            font-weight: 350;
             font-variant-numeric: tabular-nums;
-            color: var(--color-white);
+            color: var(--white);
+            line-height: 1;
+            font-family: 'SF Mono', 'Roboto Mono', monospace;
             min-width: 1.2em;
             text-align: center;
-            transition: var(--transition-normal);
-        }
-        
-        .time-colon {
-            font-size: clamp(3rem, 10vmin, 4rem);
-            color: var(--color-white-30);
-            animation: blink 2s ease-in-out infinite;
         }
         
         .seconds {
-            font-size: clamp(1.2rem, 4vmin, 1.8rem);
-            color: var(--color-white-30);
-            font-family: 'JetBrains Mono', monospace;
-            font-variant-numeric: tabular-nums;
+            font-size: clamp(2.6rem, 12vmin, 5rem);
+            color: var(--g400);
         }
         
-        /* День недели */
-        .day-display {
-            margin-bottom: 0.9375rem;
+        .time-colon {
+            font-size: clamp(3.5rem, 16vmin, 6.5rem);
+            font-weight: 250;
+            color: var(--g300);
+            line-height: 1;
+            margin: 0 0.05em;
+            position: relative;
+            top: -0.05em;
+            min-width: 0.3em;
+            text-align: center;
+        }
+        
+        .colon-seconds {
+            font-size: clamp(2.6rem, 12vmin, 5rem);
+        }
+        
+        .date-container {
+            margin: 2vh 0;
+            width: 100%;
+            position: relative;
+            text-align: center;
+        }
+        
+        .date-container::before {
+            content: '';
+            position: absolute;
+            top: -0.8vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--g300) 50%, transparent);
         }
         
         .day-name {
-            font-size: clamp(1.5rem, 5vmin, 2rem);
-            font-weight: 600;
-            letter-spacing: 0.0625rem;
-            margin-bottom: 0.25rem;
-            transition: var(--transition-normal);
+            font-size: clamp(1.4rem, 5vmin, 2.2rem);
+            font-weight: 450;
+            text-transform: uppercase;
+            color: var(--white);
+            margin-bottom: 0.2vh;
+            text-align: center;
+            width: 100%;
         }
         
-        /* Дата */
-        .date-display {
-            font-size: clamp(0.9rem, 2.5vmin, 1.1rem);
-            color: var(--color-white-30);
-            margin-bottom: 0.9375rem;
+        .date {
+            font-size: clamp(1.2rem, 3.5vmin, 1.8rem);
+            color: var(--g400);
+            text-align: center;
+            width: 100%;
         }
         
-        /* Статус */
         .status-container {
-            margin-top: 0.625rem;
+            margin-top: 2vh;
+            width: 100%;
+            position: relative;
+            text-align: center;
         }
         
-        .status-text {
-            font-size: clamp(0.8rem, 2.2vmin, 1rem);
-            letter-spacing: 0.0625rem;
-            color: var(--color-white-30);
-            margin-bottom: 0.625rem;
+        .status-container::before {
+            content: '';
+            position: absolute;
+            top: -0.8vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--g300) 50%, transparent);
         }
         
-        /* Прогресс недели */
-        .week-progress {
-            width: 80%;
-            max-width: 250px;
-            height: 0.1875rem;
-            background: var(--color-black-70);
-            border-radius: 0.125rem;
-            margin: 0 auto;
-            overflow: hidden;
+        .status {
+            font-size: clamp(0.9rem, 2.8vmin, 1.2rem);
+            text-transform: uppercase;
+            color: var(--g500);
+            text-align: center;
+            width: 100%;
         }
         
-        .week-progress-bar {
-            height: 100%;
-            border-radius: 0.125rem;
-            transition: width 0.5s ease;
-        }
-        
-        /* Метки дней */
         .day-labels {
             position: absolute;
-            inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            z-index: 1;
             pointer-events: none;
         }
         
         .day-label {
             position: absolute;
-            font-size: clamp(0.7rem, 1.8vmin, 0.9rem);
-            font-weight: 500;
-            color: var(--color-white-30);
-            transition: var(--transition-normal);
+            font-size: clamp(0.85rem, 2.8vmin, 1.3rem);
+            font-weight: 350;
+            text-transform: uppercase;
+            opacity: 0.3;
             transform: translate(-50%, -50%);
-            text-align: center;
-            width: 2rem;
-            height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: var(--white);
         }
         
         .day-label.active {
-            color: var(--color-white);
-            font-weight: 600;
-            font-size: clamp(0.9rem, 2.2vmin, 1.1rem);
+            opacity: 0.8;
+            font-weight: 500;
         }
         
-        /* Нижняя панель */
-        .bottom-bar {
-            position: fixed;
-            bottom: 0;
+        .progress-ring {
+            position: absolute;
+            top: 0;
             left: 0;
-            right: 0;
-            height: 4.375rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 1.25rem;
-            z-index: var(--z-modal);
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-            pointer-events: none;
-        }
-        
-        .bottom-bar > * {
-            pointer-events: auto;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.9375rem;
-            max-width: 500px;
             width: 100%;
+            height: 100%;
+            border-radius: 50%;
         }
         
-        .stat-item {
-            text-align: center;
+        .progress-circle {
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
         }
         
-        .stat-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .stat-label {
-            font-size: 0.7rem;
-            color: var(--color-white-30);
-            letter-spacing: 0.03125rem;
-        }
-        
-        /* Модальное окно */
-        .modal-overlay {
+        .footer {
             position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(0.625rem);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: var(--z-top);
-            opacity: 0;
-            transition: opacity var(--transition-normal);
-            padding: 1rem;
+            bottom: max(10px, env(safe-area-inset-bottom, 10px));
+            width: 100%;
+            text-align: center;
+            font-size: clamp(0.6rem, 1.5vmin, 0.75rem);
+            color: var(--g400);
+            z-index: 10;
         }
         
-        .modal-overlay.active {
-            display: flex;
+        .footer a {
+            color: var(--g400);
+            text-decoration: none;
+        }
+        
+        .install-button {
+            position: fixed;
+            top: max(10px, 2vmin);
+            right: max(10px, 2vmin);
+            background: transparent;
+            border: 1px solid var(--g300);
+            color: var(--g300);
+            padding: clamp(8px, 1.5vmin, 10px) clamp(12px, 2vmin, 16px);
+            border-radius: 6px;
+            font-size: clamp(0.65rem, 1.8vmin, 0.85rem);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        
+        .install-button.show {
             opacity: 1;
         }
         
-        .modal-content {
-            background: var(--color-black-80);
-            border: 1px solid var(--color-white-10);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            max-width: 450px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.5);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
-        }
-        
-        .modal-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--color-white);
-        }
-        
-        /* === АНИМАЦИИ === */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes rotateRing {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        
-        .week-ring {
-            animation: rotateRing 120s linear infinite;
-        }
-        
-        /* === АДАПТИВНОСТЬ === */
-        @media (max-width: 48rem) { /* 768px */
-            .top-bar {
-                height: 3.125rem;
-                padding: 0 0.9375rem;
+        @media (max-width: 768px) {
+            .clock-container {
+                width: min(90vmin, 90vh, 500px);
+                height: min(90vmin, 90vh, 500px);
             }
             
-            .app-title {
-                font-size: 1.2rem;
+            .time-part {
+                font-size: clamp(3rem, 14vmin, 5.5rem);
             }
             
-            .btn {
-                padding: 0.5rem 0.875rem;
-                font-size: 0.85rem;
-            }
-            
-            .bottom-bar {
-                height: 3.75rem;
-            }
-            
-            .stats-grid {
-                gap: 0.625rem;
-            }
-            
-            .stat-value {
-                font-size: 1rem;
-            }
-            
-            .stat-label {
-                font-size: 0.65rem;
-            }
-        }
-        
-        @media (orientation: landscape) and (max-height: 31.25rem) { /* 500px */
-            .week-circle {
-                width: min(70vmin, 400px);
-                height: min(70vmin, 400px);
-            }
-            
-            .time-digit,
             .time-colon {
-                font-size: clamp(2.5rem, 8vmin, 3rem);
+                font-size: clamp(3rem, 14vmin, 5.5rem);
             }
             
             .seconds {
-                font-size: clamp(1rem, 3vmin, 1.5rem);
+                font-size: clamp(2.2rem, 10vmin, 4rem);
             }
             
-            .day-name {
-                font-size: clamp(1.2rem, 4vmin, 1.5rem);
-            }
-            
-            .bottom-bar {
-                height: 3.125rem;
+            .colon-seconds {
+                font-size: clamp(2.2rem, 10vmin, 4rem);
             }
         }
         
-        /* Режим PWA */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .container {
+                padding-top: 50px;
+            }
+            
+            .header {
+                top: max(5px, env(safe-area-inset-top, 5px));
+            }
+            
+            .title {
+                font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+            }
+            
+            .subtitle {
+                font-size: clamp(0.5rem, 1.2vw, 0.7rem);
+            }
+            
+            .clock-container {
+                width: min(70vmin, 70vh, 400px);
+                height: min(70vmin, 70vh, 400px);
+            }
+            
+            .time-part {
+                font-size: clamp(2.2rem, 10vmin, 4rem);
+            }
+            
+            .time-colon {
+                font-size: clamp(2.2rem, 10vmin, 4rem);
+            }
+            
+            .seconds {
+                font-size: clamp(1.6rem, 7vmin, 3rem);
+            }
+            
+            .colon-seconds {
+                font-size: clamp(1.6rem, 7vmin, 3rem);
+            }
+        }
+        
         @media (display-mode: standalone) {
-            .top-bar {
-                padding-top: env(safe-area-inset-top);
-                height: calc(3.125rem + env(safe-area-inset-top));
-            }
-            
-            .bottom-bar {
-                padding-bottom: env(safe-area-inset-bottom);
-                height: calc(3.75rem + env(safe-area-inset-bottom));
-            }
-            
-            #installBtn {
+            .install-button {
                 display: none;
             }
         }
         
-        /* Доступность */
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
             }
         }
         
-        /* Поддержка старых браузеров */
-        @supports not (backdrop-filter: blur(10px)) {
-            .modal-overlay {
-                background: rgba(0, 0, 0, 0.95);
-            }
-        }
-        
-        /* Темная тема по умолчанию */
-        @media (prefers-color-scheme: light) {
-            :root {
-                --color-black: #ffffff;
-                --color-black-90: #f5f5f5;
-                --color-black-80: #e0e0e0;
-                --color-black-70: #cccccc;
-                --color-white: #000000;
-                --color-white-10: rgba(0, 0, 0, 0.1);
-                --color-white-20: rgba(0, 0, 0, 0.2);
-                --color-white-30: rgba(0, 0, 0, 0.3);
-                --color-white-50: rgba(0, 0, 0, 0.5);
-            }
+        body {
+            animation: fadeIn 0.8s ease;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Верхняя панель -->
-        <header class="top-bar" role="banner">
-            <h1 class="app-title text-uppercase">WeekFlow</h1>
-            <div class="action-buttons">
-                <button id="settingsBtn" class="btn" aria-label="Настройки">
-                    <span aria-hidden="true">⚙️</span> Настройки
-                </button>
-                <button id="installBtn" class="btn" aria-label="Установить приложение">
-                    <span aria-hidden="true">📱</span> Установить
-                </button>
-            </div>
+    <button id="installButton" class="install-button">Установить</button>
+    
+    <div class="container">
+        <header class="header">
+            <h1 class="title">WeekFlow</h1>
+            <p class="subtitle">Минималистичные Часы</p>
         </header>
         
-        <!-- Основное содержимое -->
-        <main class="clock-container flex-center" role="main">
-            <div class="week-circle">
-                <div class="week-ring" aria-hidden="true"></div>
-                <div id="dayLabels" class="day-labels" aria-hidden="true"></div>
-                <div class="clock-face">
-                    <div class="time-display text-center">
-                        <div class="time-main">
-                            <div id="hours" class="time-digit" aria-live="polite">00</div>
-                            <span class="time-colon" aria-hidden="true">:</span>
-                            <div id="minutes" class="time-digit" aria-live="polite">00</div>
-                        </div>
-                        <div id="seconds" class="seconds" aria-live="polite">00</div>
+        <main class="clock-container">
+            <div id="weekSegments" class="week-segments">
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+                <div class="week-segment"></div>
+            </div>
+            
+            <svg class="progress-ring" id="progressRing">
+                <circle class="progress-circle" id="progressCircle" cx="50%" cy="50%" r="48%" />
+            </svg>
+            
+            <div id="dayLabels" class="day-labels"></div>
+            
+            <div class="clock-face">
+                <div class="time-container">
+                    <div class="time-row">
+                        <div id="hours" class="time-part"></div>
+                        <span id="colon1" class="time-colon">:</span>
+                        <div id="minutes" class="time-part"></div>
+                        <span id="colon2" class="time-colon colon-seconds">:</span>
+                        <div id="seconds" class="time-part seconds"></div>
                     </div>
-                    
-                    <div class="day-display text-center">
-                        <div id="dayName" class="day-name text-uppercase" aria-live="polite">Понедельник</div>
-                    </div>
-                    
-                    <div class="date-display text-center">
-                        <div id="date" aria-live="polite">1 января 2026</div>
-                    </div>
-                    
-                    <div class="status-container text-center">
-                        <div id="status" class="status-text text-uppercase" aria-live="polite">День</div>
-                        <div class="week-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                            <div id="weekProgress" class="week-progress-bar"></div>
-                        </div>
-                    </div>
+                </div>
+                
+                <div class="date-container">
+                    <div id="dayName" class="day-name"></div>
+                    <div id="date" class="date"></div>
+                </div>
+                
+                <div class="status-container">
+                    <div id="status" class="status"></div>
                 </div>
             </div>
         </main>
-        
-        <!-- Нижняя панель с статистикой -->
-        <footer class="bottom-bar" role="contentinfo">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div id="weekNumber" class="stat-value" aria-live="polite">01</div>
-                    <div class="stat-label text-uppercase">Неделя</div>
-                </div>
-                <div class="stat-item">
-                    <div id="dayProgress" class="stat-value" aria-live="polite">50%</div>
-                    <div class="stat-label text-uppercase">День</div>
-                </div>
-                <div class="stat-item">
-                    <div id="timeLeft" class="stat-value" aria-live="polite">12:34</div>
-                    <div class="stat-label text-uppercase">До завтра</div>
-                </div>
-            </div>
-        </footer>
-        
-        <!-- Модальное окно настроек -->
-        <div id="settingsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="modalTitle" class="modal-title">Настройки</h2>
-                    <button id="closeModal" class="btn" aria-label="Закрыть настройки">✕</button>
-                </div>
-                
-                <div id="settingsContent" class="settings-content">
-                    <!-- Настройки будут загружены динамически -->
-                </div>
-            </div>
-        </div>
     </div>
+    
+    <footer class="footer">
+        WeekFlow © <a href="https://github.com/dituals758" target="_blank" rel="noopener">dituals758</a>
+    </footer>
 
     <script>
         (function() {
             'use strict';
             
-            // === КОНСТАНТЫ ===
             const CONFIG = {
-                // Данные (без дублирования цветов)
-                DAY_NAMES: [
-                    'Понедельник', 'Вторник', 'Среда', 
-                    'Четверг', 'Пятница', 'Суббота', 'Воскресенье'
-                ],
-                DAY_SHORT: ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'],
-                MONTHS: [
-                    'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-                    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-                ],
+                DAY_COLORS: ['#3a86ff', '#38b6ff', '#8338ec', '#ff006e', '#fb5607', '#06d6a0', '#ef476f'],
+                DAYS_RU: ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'],
+                DAYS_SHORT_RU: ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'],
+                MONTHS_RU: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
                 STATUS_TEXTS: {
-                    NIGHT: '🌙 Ночь',
-                    MORNING: '🌅 Утро',
-                    DAY: '☀️ День',
-                    EVENING: '🌆 Вечер',
-                    WEEKEND_NIGHT: '🌙 Ночь (выходной)',
-                    WEEKEND_MORNING: '🌅 Утро (выходной)',
-                    WEEKEND_DAY: '☀️ День (выходной)',
-                    WEEKEND_EVENING: '🌆 Вечер (выходной)'
-                },
-                SETTINGS_KEY: 'weekflow_settings',
-                DEFAULT_SETTINGS: {
-                    showSeconds: true,
-                    timeFormat: '24h',
-                    showAnimations: true,
-                    vibration: false
+                    WEEKEND_NIGHT: 'Выходной · Ночь',
+                    WEEKEND_MORNING: 'Выходной · Утро',
+                    WEEKEND_DAY: 'Выходной · День',
+                    WEEKEND_EVENING: 'Выходной · Вечер',
+                    NIGHT: 'Ночь',
+                    MORNING: 'Утро',
+                    DAY: 'День',
+                    EVENING: 'Вечер'
                 }
             };
             
-            // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
             const elements = {
-                // Время
                 hours: document.getElementById('hours'),
                 minutes: document.getElementById('minutes'),
                 seconds: document.getElementById('seconds'),
-                
-                // Дата и день
+                colon1: document.getElementById('colon1'),
+                colon2: document.getElementById('colon2'),
                 dayName: document.getElementById('dayName'),
                 date: document.getElementById('date'),
                 status: document.getElementById('status'),
-                
-                // Прогресс
-                weekProgress: document.getElementById('weekProgress'),
+                weekSegments: document.getElementById('weekSegments'),
                 dayLabels: document.getElementById('dayLabels'),
-                
-                // Кнопки
-                installBtn: document.getElementById('installBtn'),
-                settingsBtn: document.getElementById('settingsBtn'),
-                
-                // Модальное окно
-                settingsModal: document.getElementById('settingsModal'),
-                closeModal: document.getElementById('closeModal'),
-                settingsContent: document.getElementById('settingsContent'),
-                
-                // Статистика
-                weekNumber: document.getElementById('weekNumber'),
-                dayProgress: document.getElementById('dayProgress'),
-                timeLeft: document.getElementById('timeLeft')
+                installButton: document.getElementById('installButton'),
+                clockContainer: document.querySelector('.clock-container'),
+                progressCircle: document.getElementById('progressCircle')
             };
             
-            // Состояние приложения
-            const state = {
-                currentDay: -1,
-                currentHour: -1,
-                deferredPrompt: null,
-                settings: JSON.parse(JSON.stringify(CONFIG.DEFAULT_SETTINGS)),
-                updateInterval: null,
-                dayColors: [] // Будет заполнено из CSS переменных
-            };
+            let deferredPrompt = null;
+            let resizeObserver = null;
+            let updateInterval = null;
+            let currentDay = -1;
+            let currentHour = -1;
             
-            // === УТИЛИТЫ ===
-            const utils = {
-                // Форматирование чисел
-                formatNumber(num) {
-                    return num < 10 ? `0${num}` : `${num}`;
-                },
-                
-                // Получение дня недели (0-6, где 0 - понедельник)
-                getWeekDay(date) {
-                    return date.getDay() === 0 ? 6 : date.getDay() - 1;
-                },
-                
-                // Получение номера недели в году
-                getWeekNumber(date) {
-                    const startDate = new Date(date.getFullYear(), 0, 1);
-                    const days = Math.floor((date - startDate) / (24 * 60 * 60 * 1000));
-                    return Math.ceil((date.getDay() + 1 + days) / 7);
-                },
-                
-                // Прогресс дня в процентах
-                getDayProgress(date) {
-                    const totalSeconds = 86400;
-                    const currentSeconds = date.getHours() * 3600 + 
-                                         date.getMinutes() * 60 + 
-                                         date.getSeconds();
-                    return (currentSeconds / totalSeconds) * 100;
-                },
-                
-                // Время до завтра
-                getTimeUntilTomorrow(date) {
-                    const tomorrow = new Date(date);
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    tomorrow.setHours(0, 0, 0, 0);
-                    
-                    const diff = tomorrow - date;
-                    const hours = Math.floor(diff / 3600000);
-                    const minutes = Math.floor((diff % 3600000) / 60000);
-                    
-                    return { hours, minutes };
-                },
-                
-                // Загрузка цветов из CSS переменных (ЕДИНСТВЕННОЕ место!)
-                loadColorsFromCSS() {
-                    const style = getComputedStyle(document.documentElement);
-                    state.dayColors = Array.from({ length: 7 }, (_, i) => 
-                        style.getPropertyValue(`--color-day-${i}`).trim()
-                    );
-                },
-                
-                // Работа с настройками
-                saveSettings() {
-                    try {
-                        localStorage.setItem(CONFIG.SETTINGS_KEY, JSON.stringify(state.settings));
-                    } catch (error) {
-                        console.warn('Не удалось сохранить настройки:', error);
-                    }
-                },
-                
-                loadSettings() {
-                    try {
-                        const saved = localStorage.getItem(CONFIG.SETTINGS_KEY);
-                        if (saved) {
-                            const parsed = JSON.parse(saved);
-                            state.settings = { ...CONFIG.DEFAULT_SETTINGS, ...parsed };
-                        }
-                    } catch (error) {
-                        console.warn('Не удалось загрузить настройки:', error);
-                    }
-                },
-                
-                applySettings() {
-                    // Показ/скрытие секунд
-                    elements.seconds.style.display = state.settings.showSeconds ? 'block' : 'none';
-                    
-                    // Применение анимаций
-                    document.body.dataset.animations = state.settings.showAnimations;
-                },
-                
-                // Безопасное добавление обработчика
-                addEventListener(element, event, handler) {
-                    if (element) {
-                        element.addEventListener(event, handler);
-                    }
-                }
-            };
+            const formatNumber = num => num < 10 ? `0${num}` : `${num}`;
+            const getRussianDay = date => date.getDay() === 0 ? 6 : date.getDay() - 1;
             
-            // === ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ===
-            
-            // Обновление времени
             function updateTime() {
                 const now = new Date();
-                let hours = now.getHours();
+                const isEvenSecond = now.getSeconds() % 2 === 0;
                 
-                if (state.settings.timeFormat === '12h') {
-                    const period = hours >= 12 ? 'PM' : 'AM';
-                    hours = hours % 12 || 12;
-                }
+                elements.hours.textContent = formatNumber(now.getHours());
+                elements.minutes.textContent = formatNumber(now.getMinutes());
+                elements.seconds.textContent = formatNumber(now.getSeconds());
                 
-                elements.hours.textContent = utils.formatNumber(hours);
-                elements.minutes.textContent = utils.formatNumber(now.getMinutes());
-                
-                if (state.settings.showSeconds) {
-                    elements.seconds.textContent = utils.formatNumber(now.getSeconds());
-                }
+                elements.colon1.style.opacity = isEvenSecond ? '0.6' : '1';
+                elements.colon2.style.opacity = isEvenSecond ? '0.6' : '1';
             }
             
-            // Обновление даты и дня
             function updateDate() {
                 const now = new Date();
-                const weekDay = utils.getWeekDay(now);
+                const russianDay = getRussianDay(now);
                 
-                if (state.currentDay !== weekDay) {
-                    state.currentDay = weekDay;
-                    updateDayDisplay(weekDay);
-                }
-                
-                elements.date.textContent = 
-                    `${now.getDate()} ${CONFIG.MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-            }
-            
-            // Обновление отображения дня
-            function updateDayDisplay(weekDay) {
-                const dayColor = state.dayColors[weekDay];
-                
-                elements.dayName.textContent = CONFIG.DAY_NAMES[weekDay];
-                elements.dayName.style.color = dayColor;
-                elements.hours.style.color = dayColor;
-                elements.minutes.style.color = dayColor;
-                elements.weekProgress.style.background = dayColor;
-                
-                updateDayLabels(weekDay);
-                
-                // Анимация смены дня
-                if (state.settings.showAnimations) {
-                    requestAnimationFrame(() => {
-                        elements.dayName.style.animation = 'none';
-                        requestAnimationFrame(() => {
-                            elements.dayName.style.animation = 'fadeIn 0.5s ease';
-                        });
+                if (currentDay !== russianDay) {
+                    currentDay = russianDay;
+                    const dayColor = CONFIG.DAY_COLORS[russianDay];
+                    
+                    elements.dayName.textContent = CONFIG.DAYS_RU[russianDay];
+                    elements.dayName.style.color = dayColor;
+                    elements.hours.style.color = dayColor;
+                    elements.minutes.style.color = dayColor;
+                    elements.progressCircle.style.stroke = dayColor;
+                    
+                    const segments = elements.weekSegments.querySelectorAll('.week-segment');
+                    segments.forEach((segment, index) => {
+                        segment.classList.toggle('active', index === russianDay);
                     });
                 }
+                
+                elements.date.textContent = `${now.getDate()} ${CONFIG.MONTHS_RU[now.getMonth()]} ${now.getFullYear()}`;
             }
             
-            // Обновление меток дней
-            function updateDayLabels(activeDay) {
-                const labels = elements.dayLabels.querySelectorAll('.day-label');
-                labels.forEach((label, index) => {
-                    const isActive = index === activeDay;
-                    label.classList.toggle('active', isActive);
-                    label.style.opacity = isActive ? '1' : '0.3';
-                });
-            }
-            
-            // Обновление статуса
-            function updateStatus() {
+            function updateProgressRing() {
+                if (!elements.progressCircle) return;
+                
                 const now = new Date();
-                const weekDay = utils.getWeekDay(now);
-                const hour = now.getHours();
+                const seconds = now.getSeconds();
+                const milliseconds = now.getMilliseconds();
                 
-                if (state.currentHour === hour) return;
-                state.currentHour = hour;
+                const totalSeconds = 60;
+                const currentProgress = (seconds * 1000 + milliseconds) / (totalSeconds * 1000);
                 
-                let statusKey;
+                const radius = 48;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (currentProgress * circumference);
                 
-                if (weekDay >= 5) { // Выходные
-                    if (hour < 6) statusKey = 'WEEKEND_NIGHT';
-                    else if (hour < 12) statusKey = 'WEEKEND_MORNING';
-                    else if (hour < 18) statusKey = 'WEEKEND_DAY';
-                    else statusKey = 'WEEKEND_EVENING';
-                } else { // Будни
-                    if (hour < 6) statusKey = 'NIGHT';
-                    else if (hour < 12) statusKey = 'MORNING';
-                    else if (hour < 18) statusKey = 'DAY';
-                    else statusKey = 'EVENING';
-                }
-                
-                elements.status.textContent = CONFIG.STATUS_TEXTS[statusKey];
+                elements.progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+                elements.progressCircle.style.strokeDashoffset = offset;
             }
             
-            // Обновление прогресса недели
-            function updateWeekProgress() {
-                const now = new Date();
-                const weekDay = utils.getWeekDay(now);
-                const progress = ((weekDay + 1) / 7) * 100;
-                elements.weekProgress.style.width = `${progress}%`;
-                elements.weekProgress.parentElement.setAttribute('aria-valuenow', Math.round(progress));
-            }
-            
-            // Обновление статистики
-            function updateStats() {
-                const now = new Date();
-                
-                // Номер недели
-                elements.weekNumber.textContent = utils.formatNumber(utils.getWeekNumber(now));
-                
-                // Прогресс дня
-                const dayPercent = utils.getDayProgress(now);
-                elements.dayProgress.textContent = `${Math.round(dayPercent)}%`;
-                
-                // Время до завтра
-                const { hours, minutes } = utils.getTimeUntilTomorrow(now);
-                elements.timeLeft.textContent = 
-                    `${utils.formatNumber(hours)}:${utils.formatNumber(minutes)}`;
-            }
-            
-            // Создание меток дней
             function createDayLabels() {
-                const radius = 180;
-                const center = 200;
+                const containerWidth = elements.clockContainer.offsetWidth;
+                if (!containerWidth) return;
                 
-                CONFIG.DAY_SHORT.forEach((day, index) => {
+                const radius = containerWidth / 2;
+                const center = radius;
+                const labelRadius = radius * 0.88;
+                
+                CONFIG.DAYS_SHORT_RU.forEach((day, index) => {
                     const angle = (index * (360 / 7) - 90) * Math.PI / 180;
-                    const x = center + radius * Math.cos(angle);
-                    const y = center + radius * Math.sin(angle);
+                    const x = center + labelRadius * Math.cos(angle);
+                    const y = center + labelRadius * Math.sin(angle);
                     
                     const label = document.createElement('div');
                     label.className = 'day-label';
                     label.textContent = day;
                     label.style.left = `${x}px`;
                     label.style.top = `${y}px`;
-                    label.style.color = state.dayColors[index];
+                    label.style.color = CONFIG.DAY_COLORS[index];
                     
                     elements.dayLabels.appendChild(label);
                 });
             }
             
-            // === НАСТРОЙКИ ===
-            
-            // Рендер настроек
-            function renderSettings() {
-                elements.settingsContent.innerHTML = `
-                    <form id="settingsForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
-                        <fieldset style="border: none; padding: 0;">
-                            <legend style="font-weight: 600; color: var(--color-white); margin-bottom: 0.75rem;">
-                                Отображение
-                            </legend>
-                            
-                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                <label style="display: flex; align-items: center; gap: 0.625rem; cursor: pointer;">
-                                    <input type="checkbox" 
-                                           id="showSeconds" 
-                                           ${state.settings.showSeconds ? 'checked' : ''}
-                                           style="accent-color: var(--color-day-0);">
-                                    <span style="color: var(--color-white-50);">Показывать секунды</span>
-                                </label>
-                                
-                                <label style="display: flex; align-items: center; gap: 0.625rem; cursor: pointer;">
-                                    <input type="checkbox" 
-                                           id="showAnimations" 
-                                           ${state.settings.showAnimations ? 'checked' : ''}
-                                           style="accent-color: var(--color-day-0);">
-                                    <span style="color: var(--color-white-50);">Включить анимации</span>
-                                </label>
-                                
-                                <label style="display: flex; align-items: center; gap: 0.625rem; cursor: pointer;">
-                                    <input type="checkbox" 
-                                           id="vibration" 
-                                           ${state.settings.vibration ? 'checked' : ''}
-                                           style="accent-color: var(--color-day-0);">
-                                    <span style="color: var(--color-white-50);">Вибрация при смене часа</span>
-                                </label>
-                            </div>
-                        </fieldset>
-                        
-                        <fieldset style="border: none; padding: 0;">
-                            <legend style="font-weight: 600; color: var(--color-white); margin-bottom: 0.75rem;">
-                                Формат времени
-                            </legend>
-                            
-                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                <label style="display: flex; align-items: center; gap: 0.625rem; cursor: pointer;">
-                                    <input type="radio" 
-                                           name="timeFormat" 
-                                           value="24h" 
-                                           ${state.settings.timeFormat === '24h' ? 'checked' : ''}
-                                           style="accent-color: var(--color-day-0);">
-                                    <span style="color: var(--color-white-50);">24-часовой формат</span>
-                                </label>
-                                
-                                <label style="display: flex; align-items: center; gap: 0.625rem; cursor: pointer;">
-                                    <input type="radio" 
-                                           name="timeFormat" 
-                                           value="12h" 
-                                           ${state.settings.timeFormat === '12h' ? 'checked' : ''}
-                                           style="accent-color: var(--color-day-0);">
-                                    <span style="color: var(--color-white-50);">12-часовой формат (AM/PM)</span>
-                                </label>
-                            </div>
-                        </fieldset>
-                        
-                        <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-                            <button type="submit" class="btn" style="flex: 1; background: var(--gradient-primary); border: none;">
-                                Сохранить
-                            </button>
-                            <button type="button" id="resetSettings" class="btn" style="flex: 1;">
-                                Сбросить
-                            </button>
-                        </div>
-                    </form>
-                `;
+            function updateDayLabels() {
+                const russianDay = getRussianDay(new Date());
+                const labels = elements.dayLabels.querySelectorAll('.day-label');
                 
-                // Обработка формы
-                const form = document.getElementById('settingsForm');
-                const resetBtn = document.getElementById('resetSettings');
-                
-                form.addEventListener('submit', handleSettingsSave);
-                utils.addEventListener(resetBtn, 'click', resetSettings);
+                labels.forEach((label, index) => {
+                    const isActive = index === russianDay;
+                    label.classList.toggle('active', isActive);
+                    label.style.opacity = isActive ? '0.8' : '0.3';
+                });
             }
             
-            // Сохранение настроек
-            function handleSettingsSave(event) {
-                event.preventDefault();
+            function updateStatus() {
+                const now = new Date();
+                const russianDay = getRussianDay(now);
+                const hour = now.getHours();
                 
-                state.settings.showSeconds = document.getElementById('showSeconds').checked;
-                state.settings.showAnimations = document.getElementById('showAnimations').checked;
-                state.settings.vibration = document.getElementById('vibration').checked;
+                if (currentHour === hour) return;
+                currentHour = hour;
                 
-                const selectedFormat = document.querySelector('input[name="timeFormat"]:checked');
-                if (selectedFormat) {
-                    state.settings.timeFormat = selectedFormat.value;
+                let statusText = '';
+                
+                if (russianDay >= 5) {
+                    if (hour < 6) statusText = CONFIG.STATUS_TEXTS.WEEKEND_NIGHT;
+                    else if (hour < 12) statusText = CONFIG.STATUS_TEXTS.WEEKEND_MORNING;
+                    else if (hour < 18) statusText = CONFIG.STATUS_TEXTS.WEEKEND_DAY;
+                    else statusText = CONFIG.STATUS_TEXTS.WEEKEND_EVENING;
+                } else {
+                    if (hour < 6) statusText = CONFIG.STATUS_TEXTS.NIGHT;
+                    else if (hour < 12) statusText = CONFIG.STATUS_TEXTS.MORNING;
+                    else if (hour < 18) statusText = CONFIG.STATUS_TEXTS.DAY;
+                    else statusText = CONFIG.STATUS_TEXTS.EVENING;
                 }
                 
-                utils.saveSettings();
-                utils.applySettings();
-                closeSettingsModal();
+                elements.status.textContent = statusText;
+            }
+            
+            function repositionDayLabels() {
+                const containerWidth = elements.clockContainer.offsetWidth;
+                if (!containerWidth) return;
                 
-                // Обновляем отображение
-                updateTime();
-            }
-            
-            // Сброс настроек
-            function resetSettings() {
-                if (confirm('Сбросить все настройки к значениям по умолчанию?')) {
-                    state.settings = JSON.parse(JSON.stringify(CONFIG.DEFAULT_SETTINGS));
-                    utils.saveSettings();
-                    utils.applySettings();
-                    closeSettingsModal();
-                    updateTime();
-                }
-            }
-            
-            // === УПРАВЛЕНИЕ МОДАЛЬНЫМ ОКНОМ ===
-            
-            function openSettingsModal() {
-                elements.settingsModal.setAttribute('aria-hidden', 'false');
-                elements.settingsModal.classList.add('active');
-                renderSettings();
+                const radius = containerWidth / 2;
+                const center = radius;
+                const labelRadius = radius * 0.88;
+                const labels = elements.dayLabels.querySelectorAll('.day-label');
                 
-                // Фокус на первом элементе формы
-                setTimeout(() => {
-                    const firstInput = elements.settingsContent.querySelector('input');
-                    if (firstInput) firstInput.focus();
-                }, 100);
+                labels.forEach((label, index) => {
+                    const angle = (index * (360 / 7) - 90) * Math.PI / 180;
+                    const x = center + labelRadius * Math.cos(angle);
+                    const y = center + labelRadius * Math.sin(angle);
+                    
+                    label.style.left = `${x}px`;
+                    label.style.top = `${y}px`;
+                });
             }
-            
-            function closeSettingsModal() {
-                elements.settingsModal.setAttribute('aria-hidden', 'true');
-                elements.settingsModal.classList.remove('active');
-                elements.settingsBtn.focus();
-            }
-            
-            // === PWA ===
             
             function initPWA() {
-                // Обработка установки
-                utils.addEventListener(window, 'beforeinstallprompt', (e) => {
+                window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
-                    state.deferredPrompt = e;
+                    deferredPrompt = e;
                     
-                    utils.addEventListener(elements.installBtn, 'click', async () => {
-                        if (!state.deferredPrompt) return;
+                    elements.installButton.classList.add('show');
+                    
+                    elements.installButton.addEventListener('click', async () => {
+                        if (!deferredPrompt) return;
                         
                         try {
-                            state.deferredPrompt.prompt();
-                            const { outcome } = await state.deferredPrompt.userChoice;
+                            deferredPrompt.prompt();
+                            const { outcome } = await deferredPrompt.userChoice;
                             
                             if (outcome === 'accepted') {
-                                console.log('WeekFlow установлен');
-                                elements.installBtn.classList.add('hidden');
+                                console.log('WeekFlow установлено');
                             }
                         } catch (error) {
                             console.error('Ошибка установки:', error);
                         }
                         
-                        state.deferredPrompt = null;
+                        deferredPrompt = null;
+                        elements.installButton.classList.remove('show');
                     });
                 });
                 
-                // После установки
-                utils.addEventListener(window, 'appinstalled', () => {
-                    elements.installBtn.classList.add('hidden');
-                    state.deferredPrompt = null;
+                window.addEventListener('appinstalled', () => {
+                    elements.installButton.classList.remove('show');
+                    deferredPrompt = null;
                 });
                 
-                // Проверка, если уже установлено
                 if (window.matchMedia('(display-mode: standalone)').matches || 
                     window.navigator.standalone === true) {
-                    elements.installBtn.classList.add('hidden');
+                    elements.installButton.style.display = 'none';
                 }
             }
             
-            // === SERVICE WORKER ===
-            
-            async function initServiceWorker() {
+            function initServiceWorker() {
                 if ('serviceWorker' in navigator) {
-                    try {
-                        const registration = await navigator.serviceWorker.register('./sw.js');
-                        console.log('Service Worker зарегистрирован:', registration.scope);
-                    } catch (error) {
-                        console.error('Service Worker ошибка:', error);
-                    }
+                    window.addEventListener('load', () => {
+                        navigator.serviceWorker.register('./sw.js')
+                            .then(reg => console.log('Service Worker зарегистрирован:', reg.scope))
+                            .catch(err => console.error('Service Worker ошибка:', err));
+                    });
                 }
             }
-            
-            // === ОБРАБОТЧИКИ СОБЫТИЙ ===
-            
-            function setupEventListeners() {
-                // Кнопки
-                utils.addEventListener(elements.settingsBtn, 'click', openSettingsModal);
-                utils.addEventListener(elements.closeModal, 'click', closeSettingsModal);
-                
-                // Закрытие модального окна
-                utils.addEventListener(elements.settingsModal, 'click', (e) => {
-                    if (e.target === elements.settingsModal) {
-                        closeSettingsModal();
-                    }
-                });
-                
-                // Закрытие по ESC
-                utils.addEventListener(document, 'keydown', (e) => {
-                    if (e.key === 'Escape' && elements.settingsModal.classList.contains('active')) {
-                        closeSettingsModal();
-                    }
-                });
-                
-                // Изменение размера окна
-                let resizeTimeout;
-                utils.addEventListener(window, 'resize', () => {
-                    clearTimeout(resizeTimeout);
-                    resizeTimeout = setTimeout(() => {
-                        elements.dayLabels.innerHTML = '';
-                        createDayLabels();
-                        updateDayLabels(state.currentDay);
-                    }, 150);
-                });
-                
-                // Изменение ориентации
-                utils.addEventListener(window, 'orientationchange', () => {
-                    setTimeout(() => {
-                        elements.dayLabels.innerHTML = '';
-                        createDayLabels();
-                        updateDayLabels(state.currentDay);
-                    }, 400);
-                });
-            }
-            
-            // === ОСНОВНАЯ ИНИЦИАЛИЗАЦИЯ ===
             
             function init() {
-                // 1. Загрузка цветов из CSS (единственное место!)
-                utils.loadColorsFromCSS();
-                
-                // 2. Загрузка настроек
-                utils.loadSettings();
-                utils.applySettings();
-                
-                // 3. Создание интерфейса
                 createDayLabels();
                 
-                // 4. Настройка событий
-                setupEventListeners();
-                
-                // 5. Инициализация PWA
-                initPWA();
-                
-                // 6. Инициализация Service Worker
-                initServiceWorker();
-                
-                // 7. Первоначальное обновление
-                updateAll();
-                
-                // 8. Запуск таймера обновления
-                startUpdateTimer();
-                
-                // 9. Очистка при закрытии
-                utils.addEventListener(window, 'beforeunload', cleanup);
-            }
-            
-            function updateAll() {
                 updateTime();
                 updateDate();
+                updateProgressRing();
+                updateDayLabels();
                 updateStatus();
-                updateWeekProgress();
-                updateStats();
-            }
-            
-            function startUpdateTimer() {
-                // Обновление каждую секунду
-                state.updateInterval = setInterval(() => {
-                    const now = new Date();
-                    
-                    // Время
-                    updateTime();
-                    
-                    // Проверка на смену минуты/часа/дня
-                    if (now.getSeconds() === 0) {
-                        updateDate();
-                        updateStatus();
-                        updateWeekProgress();
-                        
-                        // Вибрация при смене часа
-                        if (now.getMinutes() === 0 && state.settings.vibration && 'vibrate' in navigator) {
-                            navigator.vibrate([100]);
-                        }
-                    }
-                    
-                    // Статистика каждые 30 секунд
-                    if (now.getSeconds() % 30 === 0) {
-                        updateStats();
-                    }
-                }, 1000);
-            }
-            
-            function cleanup() {
-                if (state.updateInterval) {
-                    clearInterval(state.updateInterval);
+                
+                if ('ResizeObserver' in window) {
+                    resizeObserver = new ResizeObserver(() => {
+                        clearTimeout(window.resizeTimeout);
+                        window.resizeTimeout = setTimeout(repositionDayLabels, 100);
+                    });
+                    resizeObserver.observe(elements.clockContainer);
                 }
+                
+                window.addEventListener('resize', () => {
+                    clearTimeout(window.resizeTimeout);
+                    window.resizeTimeout = setTimeout(repositionDayLabels, 100);
+                });
+                
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(() => {
+                        repositionDayLabels();
+                    }, 400);
+                });
+                
+                initPWA();
+                initServiceWorker();
+                
+                let lastUpdate = Date.now();
+                updateInterval = setInterval(() => {
+                    const now = Date.now();
+                    if (now - lastUpdate >= 50) {
+                        updateTime();
+                        updateDate();
+                        updateProgressRing();
+                        updateDayLabels();
+                        updateStatus();
+                        lastUpdate = now;
+                    }
+                }, 50);
+                
+                window.addEventListener('beforeunload', () => {
+                    clearInterval(updateInterval);
+                    if (resizeObserver) resizeObserver.disconnect();
+                });
             }
-            
-            // === ЗАПУСК ПРИЛОЖЕНИЯ ===
             
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
