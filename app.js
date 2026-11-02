@@ -2,7 +2,7 @@
    КОНФИГУРАЦИЯ (замените значения на свои)
    ============================================================ */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbyvrSCXdp0kXGXAcQE8SZ0bKLnbG8VbpNhzYnF65Ey1ufZKX5kB-HkmxmingLxkND20eQ/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbw9g9lV28dOEX7VzeFAFKx2tGebatucuiwwBpVzuVLI1iNPDUz2MiwSj2g5NHXgEsgCkw/exec',
   API_TOKEN: '3f8c1d94b2e7f6a0c5d8e1b4f7a2c9d3e6b8f1a4c7d0e3b6f9a2c5d8e1b4f7'
 };
 
@@ -45,6 +45,52 @@ let isSubmitting = false;
 
 const $ = (id) => document.getElementById(id);
 
+/* ============================================================
+   СТАТИСТИКА ИСПОЛЬЗОВАНИЯ (localStorage)
+   ============================================================ */
+const STATS_KEY = 'ops-category-usage-v1';
+
+function getUsageStats() {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function incrementUsage(label) {
+  try {
+    const stats = getUsageStats();
+    stats[label] = (stats[label] || 0) + 1;
+    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+  } catch {
+    // localStorage может быть недоступен (private mode, лимит) — не блокируем запись
+  }
+}
+
+/**
+ * Сортирует массив категорий по частоте использования (по убыванию).
+ * Если счётчики равны или отсутствуют — сохраняется исходный порядок
+ * (стабильная сортировка с индексом как тай-брейкером).
+ */
+function sortByUsage(list) {
+  const stats = getUsageStats();
+  return list
+    .map((cat, idx) => ({
+      ...cat,
+      _usage: stats[cat.label] || 0,
+      _idx: idx
+    }))
+    .sort((a, b) => (b._usage - a._usage) || (a._idx - b._idx))
+    .map(({ _usage, _idx, ...rest }) => rest);
+}
+
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -68,6 +114,9 @@ function parseAmount(raw) {
   return Number.isFinite(value) ? value : NaN;
 }
 
+/* ============================================================
+   ПЕРЕКЛЮЧЕНИЕ ТИПА
+   ============================================================ */
 function setType(type) {
   if (type !== 'expense' && type !== 'income') return;
   if (currentType === type) return;
@@ -83,22 +132,30 @@ function setType(type) {
   setStatus('', '');
 }
 
+/* ============================================================
+   РЕНДЕР СЕТКИ (с сортировкой по частоте)
+   ============================================================ */
 function renderCategories(type) {
   const grid = $('categories-grid');
   const list = categories[type] || [];
-  const main = list.filter(c => c.main);
+  const main  = list.filter(c => c.main);
   const extra = list.filter(c => !c.main);
+
+  // Сортируем каждую группу отдельно по частоте
+  const mainSorted  = sortByUsage(main);
+  const extraSorted = sortByUsage(extra);
+
   const html = [];
 
-  main.forEach(cat => {
+  mainSorted.forEach(cat => {
     const safe = escapeHtml(cat.label);
     html.push(`<button type="button" class="category-btn" data-category="${safe}">${safe}</button>`);
   });
 
-  if (extra.length > 0) {
+  if (extraSorted.length > 0) {
     html.push(`<button type="button" class="category-btn more-btn">⋯ Ещё</button>`);
     html.push(`<div id="extra-categories" class="extra-grid hidden">`);
-    extra.forEach(cat => {
+    extraSorted.forEach(cat => {
       const safe = escapeHtml(cat.label);
       html.push(`<button type="button" class="category-btn" data-category="${safe}">${safe}</button>`);
     });
@@ -119,6 +176,9 @@ function selectCategory(label, btn) {
   if (btn) btn.classList.add('selected');
 }
 
+/* ============================================================
+   ОТПРАВКА
+   ============================================================ */
 async function submitOperation() {
   if (isSubmitting) return;
 
@@ -162,7 +222,6 @@ async function submitOperation() {
   try {
     const response = await fetch(CONFIG.API_URL, {
       method: 'POST',
-      // ВАЖНО: text/plain — не вызывает preflight, CORS проходит
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
       redirect: 'follow'
@@ -174,13 +233,20 @@ async function submitOperation() {
     catch { result = { status: 'error', message: 'Некорректный ответ сервера' }; }
 
     if (result.status === 'success') {
+      // 🔥 Считаем использование категории ТОЛЬКО при успешной записи
+      incrementUsage(selectedCategory);
+
       setStatus('✅ Записано', 'success');
       amountInput.value = '';
       noteInput.value = '';
       selectedCategory = null;
       document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('selected'));
+
       const extra = $('extra-categories');
       if (extra && !extra.classList.contains('hidden')) extra.classList.add('hidden');
+
+      // Перерисовываем с учётом нового порядка
+      renderCategories(currentType);
     } else {
       setStatus('Ошибка: ' + (result.message || 'неизвестно'), 'error');
     }
@@ -193,7 +259,7 @@ async function submitOperation() {
 }
 
 /* ============================================================
-   Инициализация
+   ИНИЦИАЛИЗАЦИЯ
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
   $('btn-expense').addEventListener('click', () => setType('expense'));
@@ -226,6 +292,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCategories(currentType);
 });
 
+/* ============================================================
+   Service Worker
+   ============================================================ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
