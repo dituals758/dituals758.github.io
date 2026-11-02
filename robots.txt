@@ -1,5 +1,2 @@
 User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /private/
-Sitemap: https://dituals758.github.io/sitemap.xml
+Disallow: /
