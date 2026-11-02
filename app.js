@@ -2,7 +2,7 @@
    КОНФИГУРАЦИЯ (замените значения на свои)
    ============================================================ */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbzULQY471v6pwk93kF3N1nDHv34eJjWKswnWZlD1ylg7bygMsgjsbADNzK37Cz8rY_XFA/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbyvrSCXdp0kXGXAcQE8SZ0bKLnbG8VbpNhzYnF65Ey1ufZKX5kB-HkmxmingLxkND20eQ/exec',
   API_TOKEN: '3f8c1d94b2e7f6a0c5d8e1b4f7a2c9d3e6b8f1a4c7d0e3b6f9a2c5d8e1b4f7'
 };
 
@@ -29,13 +29,13 @@ const categories = {
     { label: '📦 Прочее',      main: false }
   ],
   income: [
-    { label: '🎁 Кэшбэк',       main: true },
-    { label: '🏦 % по вкладу',  main: true },
-    { label: '📈 Инвестиции',   main: true },
-    { label: '🤝 Подарки',      main: true },
-    { label: '💵 Зарплата',     main: true },
-    { label: '💰 Прочее',       main: true },
-    { label: '💸 Аванс',        main: true }
+    { label: '🎁 Кэшбэк',      main: true },
+    { label: '🏦 % по вкладу', main: true },
+    { label: '📈 Инвестиции',  main: true },
+    { label: '🤝 Подарки',     main: true },
+    { label: '💵 Зарплата',    main: true },
+    { label: '💰 Прочее',      main: true },
+    { label: '💸 Аванс',       main: true }
   ]
 };
 
@@ -57,7 +57,6 @@ function setStatus(message, cls) {
   el.className = 'status' + (cls ? ' ' + cls : '');
 }
 
-/* Разбор суммы: принимает "1 234,56", "1234.56", "1,5" */
 function parseAmount(raw) {
   if (!raw) return NaN;
   const normalized = String(raw)
@@ -163,6 +162,7 @@ async function submitOperation() {
   try {
     const response = await fetch(CONFIG.API_URL, {
       method: 'POST',
+      // ВАЖНО: text/plain — не вызывает preflight, CORS проходит
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
       redirect: 'follow'
@@ -200,11 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-income').addEventListener('click', () => setType('income'));
   $('submit-btn').addEventListener('click', submitOperation);
 
-  // Автоочистка статуса при новом вводе
   $('amount').addEventListener('input', () => setStatus('', ''));
   $('note').addEventListener('input', () => setStatus('', ''));
 
-  // Enter в полях — отправка (для внешних клавиатур)
   $('amount').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); submitOperation(); }
   });
@@ -212,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') { e.preventDefault(); submitOperation(); }
   });
 
-  // Делегирование клика по категориям
   $('categories-grid').addEventListener('click', (e) => {
     const btn = e.target.closest('.category-btn');
     if (!btn) return;
@@ -229,9 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCategories(currentType);
 });
 
-/* ============================================================
-   Service Worker
-   ============================================================ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});

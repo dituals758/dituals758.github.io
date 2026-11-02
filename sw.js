@@ -1,4 +1,4 @@
-const CACHE = 'mbbla-v1';
+const CACHE = 'mbbla-v1.1';
 const ASSETS = [
   './',
   './index.html',
