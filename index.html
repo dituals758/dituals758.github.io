@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1">
+
+  <!-- Защита от индексации -->
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="theme-color" content="#000000">
-  
+
+  <!-- Настройки для iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -67,12 +70,11 @@
     <footer class="app-footer">
       <div id="status" class="status" role="status" aria-live="polite"></div>
       <button type="button" id="submit-btn" class="submit-btn">Записать</button>
-      
-      <!-- Плашка с версией -->
-      <div class="app-version">v04.11.2026</div>
+      <div class="app-version" id="app-version">Загрузка...</div>
     </footer>
   </main>
 
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -12,7 +12,6 @@
   --success: #30d158;
   --danger: #ff453a;
   --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.15);
   --radius: 14px;
   --radius-lg: 20px;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -156,7 +155,6 @@ input, textarea {
 /* ─── Categories ─── */
 .categories-grid {
   display: grid;
-  /* Автоматически подстраивает количество колонок в зависимости от ширины экрана */
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 8px;
   margin-bottom: 16px;
@@ -196,7 +194,7 @@ input, textarea {
 }
 
 .more-btn {
-  grid-column: 1 / -1; /* Растягиваем кнопку "Ещё" на всю ширину */
+  grid-column: 1 / -1;
   background: transparent;
   border-style: dashed;
   color: var(--text-secondary);
@@ -281,13 +279,12 @@ input, textarea {
 .status.success { color: var(--success); }
 .status.error   { color: var(--danger);  }
 
-/* ─── Версия приложения ─── */
 .app-version {
   text-align: center;
   font-size: 11px;
-  color: var(--text-tertiary); /* Темно-серый цвет */
+  color: var(--text-tertiary);
   margin-top: 12px;
   letter-spacing: 0.05em;
   font-weight: 500;
-  user-select: text; /* Чтобы можно было скопировать при желании */
+  user-select: text;
 }

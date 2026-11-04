@@ -1,10 +1,7 @@
 /* ============================================================
-   КОНФИГУРАЦИЯ
+   КОНФИГУРАЦИЯ ПОДТЯГИВАЕТСЯ ИЗ config.js
+   (константа APP_CONFIG объявлена там)
    ============================================================ */
-const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbxIvXMqWGyCy-S3_9Db5FXxWiTuLNLjCEELCU0Fq2nGd3rfZBCQP3ztIVRuFGOeUr25tw/exec', // ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ
-  API_TOKEN: '3f8c1d94b2e7f6a0c5d8e1b4f7a2c9d3e6b8f1a4c7d0e3b6f9a2c5d8e1b4f7'
-}
 
 /* ============================================================
    КАТЕГОРИИ
@@ -14,7 +11,7 @@ const categories = {
     { label: '🛒 Продукты',    main: true  },
     { label: '🍔 Фастфуд',     main: true  },
     { label: '🍺 Алкоголь',    main: true  },
-    { label: '🚕 Такси',       main: true  },
+    { label: '🚕 Такси',       main: false  },
     { label: '🚇 Транспорт',   main: true  },
     { label: '📱 Связь',       main: true  },
     { label: '💊 Здоровье',    main: true  },
@@ -26,7 +23,7 @@ const categories = {
     { label: '✈️ Путешествия', main: false },
     { label: '🔄 Переводы',    main: false },
     { label: '💸 Комиссии',    main: false },
-    { label: '📦 Прочее',      main: false }
+    { label: '📦 Прочее',      main: true }
   ],
   income: [
     { label: '🎁 Кэшбэк',      main: true },
@@ -94,15 +91,15 @@ function setStatus(message, cls) {
 function formatAmountInput(value) {
   let clean = value.replace(/[^\d.,]/g, '');
   clean = clean.replace('.', ',');
-  
+
   const parts = clean.split(',');
   let integerPart = parts[0];
   let decimalPart = parts.length > 1 ? ',' + parts[1].substring(0, 2) : '';
-  
+
   if (integerPart) {
     integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   }
-  
+
   return integerPart + decimalPart;
 }
 
@@ -176,7 +173,7 @@ function selectCategory(label, btn) {
 }
 
 /* ============================================================
-   ОТПРАВКА (ИСПРАВЛЕНО ДЛЯ CORS)
+   ОТПРАВКА (GET + no-cors для обхода CORS на iOS)
    ============================================================ */
 async function submitOperation() {
   if (isSubmitting) return;
@@ -198,30 +195,28 @@ async function submitOperation() {
     return;
   }
 
-  // Используем FormData вместо URLSearchParams и JSON
-  const formData = new FormData();
-  formData.append('token', CONFIG.API_TOKEN);
-  formData.append('type', currentType);
-  formData.append('amount', amount);
-  formData.append('category', selectedCategory);
-  formData.append('note', note);
-
   isSubmitting = true;
   submitBtn.disabled = true;
   setStatus('Отправка...', '');
 
   try {
-    await fetch(CONFIG.API_URL, {
-      method: 'POST',
-      mode: 'no-cors', // 👈 Магический режим для обхода CORS
-      body: formData,
+    const params = new URLSearchParams({
+      token: APP_CONFIG.API_TOKEN,
+      type: currentType,
+      amount: amount,
+      category: selectedCategory,
+      note: note
     });
 
-    // При mode: 'no-cors' ответ прочитать нельзя. 
-    // Если запрос не упал с сетевой ошибкой, считаем, что всё ок.
+    await fetch(`${APP_CONFIG.API_URL}?${params.toString()}`, {
+      method: 'GET',
+      mode: 'no-cors'
+    });
+
+    // Ответ прочитать нельзя, но если не было сетевой ошибки - считаем успехом
     incrementUsage(selectedCategory);
-    setStatus('✅ Записано', 'success');
-    
+    setStatus('✅ Отправлено', 'success');
+
     amountInput.value = '';
     noteInput.value = '';
     selectedCategory = null;
@@ -231,6 +226,7 @@ async function submitOperation() {
     if (extra && !extra.classList.contains('hidden')) extra.classList.add('hidden');
 
     renderCategories(currentType);
+
   } catch (err) {
     setStatus('Ошибка сети', 'error');
   } finally {
@@ -247,18 +243,18 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-income').addEventListener('click', () => setType('income'));
   $('submit-btn').addEventListener('click', submitOperation);
 
-  // Обработчик суммы с сохранением позиции курсора
+  // Ввод суммы с сохранением позиции курсора
   $('amount').addEventListener('input', (e) => {
     const input = e.target;
     const oldLength = input.value.length;
     const cursorPosition = input.selectionStart;
-    
+
     input.value = formatAmountInput(input.value);
-    
+
     const newLength = input.value.length;
     const newPosition = cursorPosition + (newLength - oldLength);
     input.setSelectionRange(newPosition, newPosition);
-    
+
     setStatus('', '');
   });
 
@@ -285,10 +281,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   renderCategories(currentType);
+
+  // Версия подтягивается из config.js через Service Worker
+  const versionEl = $('app-version');
+  if (versionEl && typeof APP_CONFIG !== 'undefined') {
+    versionEl.textContent = `v${APP_CONFIG.VERSION}`;
+  }
 });
 
 /* ============================================================
-   Service Worker
+   Service Worker Регистрация
    ============================================================ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
