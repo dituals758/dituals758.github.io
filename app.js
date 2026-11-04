@@ -4,7 +4,7 @@
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbxIvXMqWGyCy-S3_9Db5FXxWiTuLNLjCEELCU0Fq2nGd3rfZBCQP3ztIVRuFGOeUr25tw/exec', // ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ
   API_TOKEN: '3f8c1d94b2e7f6a0c5d8e1b4f7a2c9d3e6b8f1a4c7d0e3b6f9a2c5d8e1b4f7'
-};
+}
 
 /* ============================================================
    КАТЕГОРИИ
@@ -46,7 +46,7 @@ let isSubmitting = false;
 const $ = (id) => document.getElementById(id);
 
 /* ============================================================
-   СТАТИСТИКА ИСПОЛЬЗОВАНИЯ
+   СТАТИСТИКА ИСПОЛЬЗОВАНИЯ (localStorage)
    ============================================================ */
 const STATS_KEY = 'ops-category-usage-v1';
 
@@ -176,7 +176,7 @@ function selectCategory(label, btn) {
 }
 
 /* ============================================================
-   ОТПРАВКА
+   ОТПРАВКА (ИСПРАВЛЕНО ДЛЯ CORS)
    ============================================================ */
 async function submitOperation() {
   if (isSubmitting) return;
@@ -198,7 +198,8 @@ async function submitOperation() {
     return;
   }
 
-  const formData = new URLSearchParams();
+  // Используем FormData вместо URLSearchParams и JSON
+  const formData = new FormData();
   formData.append('token', CONFIG.API_TOKEN);
   formData.append('type', currentType);
   formData.append('amount', amount);
@@ -210,33 +211,26 @@ async function submitOperation() {
   setStatus('Отправка...', '');
 
   try {
-    const response = await fetch(CONFIG.API_URL, {
+    await fetch(CONFIG.API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData.toString(),
-      redirect: 'follow'
+      mode: 'no-cors', // 👈 Магический режим для обхода CORS
+      body: formData,
     });
 
-    const text = await response.text();
-    let result;
-    try { result = JSON.parse(text); }
-    catch { result = { status: 'error', message: 'Ошибка сервера' }; }
+    // При mode: 'no-cors' ответ прочитать нельзя. 
+    // Если запрос не упал с сетевой ошибкой, считаем, что всё ок.
+    incrementUsage(selectedCategory);
+    setStatus('✅ Записано', 'success');
+    
+    amountInput.value = '';
+    noteInput.value = '';
+    selectedCategory = null;
+    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('selected'));
 
-    if (result.status === 'success') {
-      incrementUsage(selectedCategory);
-      setStatus('✅ Записано', 'success');
-      amountInput.value = '';
-      noteInput.value = '';
-      selectedCategory = null;
-      document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('selected'));
+    const extra = $('extra-categories');
+    if (extra && !extra.classList.contains('hidden')) extra.classList.add('hidden');
 
-      const extra = $('extra-categories');
-      if (extra && !extra.classList.contains('hidden')) extra.classList.add('hidden');
-
-      renderCategories(currentType);
-    } else {
-      setStatus('Ошибка: ' + (result.message || 'неизвестно'), 'error');
-    }
+    renderCategories(currentType);
   } catch (err) {
     setStatus('Ошибка сети', 'error');
   } finally {

@@ -1,4 +1,4 @@
-const CACHE = 'mbbla-v04.11.2026';
+const CACHE = 'mbbla-v04.11.2026.1';
 const ASSETS = [
   './',
   './index.html',
