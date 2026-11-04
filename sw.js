@@ -1,4 +1,4 @@
-const CACHE = 'mbbla-v1.2';
+const CACHE = 'mbbla-v04.11.2026';
 const ASSETS = [
   './',
   './index.html',
@@ -24,8 +24,10 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // API-запросы не кэшируем
-  if (e.request.url.includes('script.google.com')) return;
+  // Пропускаем запросы к API Google без перехвата (чтобы не было CORS и редирект-ошибок)
+  if (e.request.url.includes('script.google.com') || e.request.url.includes('googleusercontent.com')) {
+    return;
+  }
 
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))

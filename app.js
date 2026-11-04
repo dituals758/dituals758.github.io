@@ -1,8 +1,8 @@
 /* ============================================================
-   КОНФИГУРАЦИЯ (замените значения на свои)
+   КОНФИГУРАЦИЯ
    ============================================================ */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbw9g9lV28dOEX7VzeFAFKx2tGebatucuiwwBpVzuVLI1iNPDUz2MiwSj2g5NHXgEsgCkw/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbxIvXMqWGyCy-S3_9Db5FXxWiTuLNLjCEELCU0Fq2nGd3rfZBCQP3ztIVRuFGOeUr25tw/exec', // ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ
   API_TOKEN: '3f8c1d94b2e7f6a0c5d8e1b4f7a2c9d3e6b8f1a4c7d0e3b6f9a2c5d8e1b4f7'
 };
 
@@ -46,7 +46,7 @@ let isSubmitting = false;
 const $ = (id) => document.getElementById(id);
 
 /* ============================================================
-   СТАТИСТИКА ИСПОЛЬЗОВАНИЯ (localStorage)
+   СТАТИСТИКА ИСПОЛЬЗОВАНИЯ
    ============================================================ */
 const STATS_KEY = 'ops-category-usage-v1';
 
@@ -56,9 +56,7 @@ function getUsageStats() {
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
+  } catch { return {}; }
 }
 
 function incrementUsage(label) {
@@ -66,24 +64,13 @@ function incrementUsage(label) {
     const stats = getUsageStats();
     stats[label] = (stats[label] || 0) + 1;
     localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-  } catch {
-    // localStorage может быть недоступен (private mode, лимит) — не блокируем запись
-  }
+  } catch {}
 }
 
-/**
- * Сортирует массив категорий по частоте использования (по убыванию).
- * Если счётчики равны или отсутствуют — сохраняется исходный порядок
- * (стабильная сортировка с индексом как тай-брейкером).
- */
 function sortByUsage(list) {
   const stats = getUsageStats();
   return list
-    .map((cat, idx) => ({
-      ...cat,
-      _usage: stats[cat.label] || 0,
-      _idx: idx
-    }))
+    .map((cat, idx) => ({ ...cat, _usage: stats[cat.label] || 0, _idx: idx }))
     .sort((a, b) => (b._usage - a._usage) || (a._idx - b._idx))
     .map(({ _usage, _idx, ...rest }) => rest);
 }
@@ -103,6 +90,22 @@ function setStatus(message, cls) {
   el.className = 'status' + (cls ? ' ' + cls : '');
 }
 
+// Форматирование ввода в стиле "1 234,56"
+function formatAmountInput(value) {
+  let clean = value.replace(/[^\d.,]/g, '');
+  clean = clean.replace('.', ',');
+  
+  const parts = clean.split(',');
+  let integerPart = parts[0];
+  let decimalPart = parts.length > 1 ? ',' + parts[1].substring(0, 2) : '';
+  
+  if (integerPart) {
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  }
+  
+  return integerPart + decimalPart;
+}
+
 function parseAmount(raw) {
   if (!raw) return NaN;
   const normalized = String(raw)
@@ -115,7 +118,7 @@ function parseAmount(raw) {
 }
 
 /* ============================================================
-   ПЕРЕКЛЮЧЕНИЕ ТИПА
+   ЛОГИКА ИНТЕРФЕЙСА
    ============================================================ */
 function setType(type) {
   if (type !== 'expense' && type !== 'income') return;
@@ -132,16 +135,12 @@ function setType(type) {
   setStatus('', '');
 }
 
-/* ============================================================
-   РЕНДЕР СЕТКИ (с сортировкой по частоте)
-   ============================================================ */
 function renderCategories(type) {
   const grid = $('categories-grid');
   const list = categories[type] || [];
   const main  = list.filter(c => c.main);
   const extra = list.filter(c => !c.main);
 
-  // Сортируем каждую группу отдельно по частоте
   const mainSorted  = sortByUsage(main);
   const extraSorted = sortByUsage(extra);
 
@@ -198,22 +197,13 @@ async function submitOperation() {
     setStatus('Выберите категорию', 'error');
     return;
   }
-  if (
-    !CONFIG.API_URL || !CONFIG.API_TOKEN ||
-    CONFIG.API_URL.indexOf('ВАШ') !== -1 ||
-    CONFIG.API_TOKEN.indexOf('ВАШ') !== -1
-  ) {
-    setStatus('Настройте CONFIG в app.js', 'error');
-    return;
-  }
 
-  const payload = {
-    token: CONFIG.API_TOKEN,
-    type: currentType,
-    amount: amount,
-    category: selectedCategory,
-    note: note
-  };
+  const formData = new URLSearchParams();
+  formData.append('token', CONFIG.API_TOKEN);
+  formData.append('type', currentType);
+  formData.append('amount', amount);
+  formData.append('category', selectedCategory);
+  formData.append('note', note);
 
   isSubmitting = true;
   submitBtn.disabled = true;
@@ -222,20 +212,18 @@ async function submitOperation() {
   try {
     const response = await fetch(CONFIG.API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData.toString(),
       redirect: 'follow'
     });
 
     const text = await response.text();
     let result;
     try { result = JSON.parse(text); }
-    catch { result = { status: 'error', message: 'Некорректный ответ сервера' }; }
+    catch { result = { status: 'error', message: 'Ошибка сервера' }; }
 
     if (result.status === 'success') {
-      // 🔥 Считаем использование категории ТОЛЬКО при успешной записи
       incrementUsage(selectedCategory);
-
       setStatus('✅ Записано', 'success');
       amountInput.value = '';
       noteInput.value = '';
@@ -245,7 +233,6 @@ async function submitOperation() {
       const extra = $('extra-categories');
       if (extra && !extra.classList.contains('hidden')) extra.classList.add('hidden');
 
-      // Перерисовываем с учётом нового порядка
       renderCategories(currentType);
     } else {
       setStatus('Ошибка: ' + (result.message || 'неизвестно'), 'error');
@@ -266,7 +253,21 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-income').addEventListener('click', () => setType('income'));
   $('submit-btn').addEventListener('click', submitOperation);
 
-  $('amount').addEventListener('input', () => setStatus('', ''));
+  // Обработчик суммы с сохранением позиции курсора
+  $('amount').addEventListener('input', (e) => {
+    const input = e.target;
+    const oldLength = input.value.length;
+    const cursorPosition = input.selectionStart;
+    
+    input.value = formatAmountInput(input.value);
+    
+    const newLength = input.value.length;
+    const newPosition = cursorPosition + (newLength - oldLength);
+    input.setSelectionRange(newPosition, newPosition);
+    
+    setStatus('', '');
+  });
+
   $('note').addEventListener('input', () => setStatus('', ''));
 
   $('amount').addEventListener('keydown', (e) => {
